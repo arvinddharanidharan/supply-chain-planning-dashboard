@@ -60,20 +60,20 @@ def main():
     with col1:
         try:
             copq = filtered_orders['quality_cost'].sum() + filtered_orders['late_penalty'].sum()
-            st.metric("Cost of Poor Quality ℹ️", f"${copq:,.0f}", help="Total cost of quality issues and late delivery penalties. Calculated as: Quality Costs + Late Penalties")
+            st.metric("Cost of Poor Quality", f"${copq:,.0f}", help="Total cost of quality issues and late delivery penalties. Calculated as: Quality Costs + Late Penalties")
         except KeyError:
-            st.metric("Cost of Poor Quality ℹ️", "N/A", help="Data not available")
+            st.metric("Cost of Poor Quality", "N/A", help="Data not available")
     
     with col2:
         try:
             working_capital = inventory['inventory_value'].sum()
-            st.metric("Working Capital ℹ️", f"${working_capital:,.0f}", help="Total value of inventory on hand. Calculated as: Sum of (Current Stock × Unit Cost) for all products")
+            st.metric("Working Capital", f"${working_capital:,.0f}", help="Total value of inventory on hand. Calculated as: Sum of (Current Stock × Unit Cost) for all products")
         except KeyError:
-            st.metric("Working Capital ℹ️", "N/A", help="Data not available")
+            st.metric("Working Capital", "N/A", help="Data not available")
     
     with col3:
         total_spend = filtered_orders['total_value'].sum()
-        st.metric("Procurement Spend ℹ️", f"${total_spend:,.0f}", help="Total spending on procurement for the selected period. Calculated as: Sum of all order values")
+        st.metric("Procurement Spend", f"${total_spend:,.0f}", help="Total spending on procurement for the selected period. Calculated as: Sum of all order values")
     
     with col4:
         try:
@@ -81,16 +81,16 @@ def main():
             days_in_period = (filtered_orders['order_date'].max() - filtered_orders['order_date'].min()).days
             annualized_cogs = total_spend * (365 / max(days_in_period, 1))
             turnover = annualized_cogs / total_inventory_value if total_inventory_value > 0 else 0
-            st.metric("Inventory Turnover ℹ️", f"{turnover:.1f}x", help="How many times inventory is sold per year. Calculated as: Annualized COGS ÷ Average Inventory Value")
+            st.metric("Inventory Turnover", f"{turnover:.1f}x", help="How many times inventory is sold per year. Calculated as: Annualized COGS ÷ Average Inventory Value")
         except KeyError:
-            st.metric("Inventory Turnover ℹ️", "N/A", help="Data not available")
+            st.metric("Inventory Turnover", "N/A", help="Data not available")
     
     with col5:
         try:
             carrying_cost = inventory['carrying_cost'].sum()
-            st.metric("Annual Carrying Cost ℹ️", f"${carrying_cost:,.0f}", help="Annual cost to hold inventory. Calculated as: Inventory Value × Carrying Cost Rate (15-35% annually)")
+            st.metric("Annual Carrying Cost", f"${carrying_cost:,.0f}", help="Annual cost to hold inventory. Calculated as: Inventory Value × Carrying Cost Rate (15-35% annually)")
         except KeyError:
-            st.metric("Annual Carrying Cost ℹ️", "N/A", help="Data not available")
+            st.metric("Annual Carrying Cost", "N/A", help="Data not available")
     
     st.header("Operational Performance Indicators")
     
@@ -99,25 +99,25 @@ def main():
     with col1:
         on_time = (filtered_orders['delivery_date'] <= filtered_orders['planned_delivery']).sum()
         otd_pct = (on_time / len(filtered_orders)) * 100 if len(filtered_orders) > 0 else 0
-        st.metric("On-Time Delivery % ℹ️", f"{otd_pct:.1f}%", help="Percentage of orders delivered on or before planned delivery date. Calculated as: (On-time deliveries ÷ Total orders) × 100")
+        st.metric("On-Time Delivery %", f"{otd_pct:.1f}%", help="Percentage of orders delivered on or before planned delivery date. Calculated as: (On-time deliveries ÷ Total orders) × 100")
     
     with col2:
         avg_lead_time = filtered_orders['lead_time'].mean()
-        st.metric("Avg Lead Time ℹ️", f"{avg_lead_time:.1f} days", help="Average time from order placement to delivery. Calculated as: Sum of (Delivery Date - Order Date) ÷ Number of orders")
+        st.metric("Avg Lead Time", f"{avg_lead_time:.1f} days", help="Average time from order placement to delivery. Calculated as: Sum of (Delivery Date - Order Date) ÷ Number of orders")
     
     with col3:
         mrp_compliant = (filtered_orders['mrp_compliance'] == 'Compliant').sum()
         setup_compliant = (filtered_orders['setup_compliance'] == 'Compliant').sum()
         compliance = ((mrp_compliant + setup_compliant) / (len(filtered_orders) * 2)) * 100
-        st.metric("Process Compliance ℹ️", f"{compliance:.1f}%", help="Percentage of orders following proper MRP and setup processes. Calculated as: (Compliant processes ÷ Total process steps) × 100")
+        st.metric("Process Compliance", f"{compliance:.1f}%", help="Percentage of orders following proper MRP and setup processes. Calculated as: (Compliant processes ÷ Total process steps) × 100")
     
     with col4:
         avg_defect_rate = filtered_orders['defect_rate'].mean()
-        st.metric("Avg Defect Rate ℹ️", f"{avg_defect_rate:.2f}%", help="Average percentage of defective units received. Calculated as: Sum of (Defective units ÷ Total units) × 100 ÷ Number of orders")
+        st.metric("Avg Defect Rate", f"{avg_defect_rate:.2f}%", help="Average percentage of defective units received. Calculated as: Sum of (Defective units ÷ Total units) × 100 ÷ Number of orders")
     
     with col5:
         critical_stock = (inventory['stock_status'] == 'Critical').sum()
-        st.metric("Critical Stock Items ℹ️", critical_stock, help="Number of products with stock levels below safety stock. Items requiring immediate attention to avoid stockouts")
+        st.metric("Critical Stock Items", critical_stock, help="Number of products with stock levels below safety stock. Items requiring immediate attention to avoid stockouts")
     
     st.header("Analytics")
     
