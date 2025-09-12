@@ -6,7 +6,6 @@ import numpy as np
 
 st.set_page_config(
     page_title="Supply Chain Planning Dashboard",
-    page_icon="📊",
     layout="wide"
 )
 
@@ -23,12 +22,11 @@ def load_data():
         st.stop()
 
 def main():
-    st.title("📊 Supply Chain Planning & KPI Dashboard")
+    st.title("Supply Chain Planning & KPI Dashboard")
     
     orders, inventory, products, suppliers = load_data()
     
-    # Sidebar filters
-    st.sidebar.header("🔍 Filters")
+    st.sidebar.header("Filters")
     
     date_range = st.sidebar.date_input(
         "Date Range",
@@ -55,8 +53,7 @@ def main():
         st.warning("No data matches the selected filters. Using all data.")
         filtered_orders = orders
     
-    # Financial KPIs
-    st.header("💰 Financial Performance Indicators")
+    st.header("Financial Performance Indicators")
     
     col1, col2, col3, col4, col5 = st.columns(5)
     
@@ -94,8 +91,7 @@ def main():
         except KeyError:
             st.metric("Carrying Cost", "N/A")
     
-    # Operational KPIs
-    st.header("🎯 Operational Performance Indicators")
+    st.header("Operational Performance Indicators")
     
     col1, col2, col3, col4, col5 = st.columns(5)
     
@@ -122,13 +118,12 @@ def main():
         critical_stock = (inventory['stock_status'] == 'Critical').sum()
         st.metric("Critical Stock Items", critical_stock)
     
-    # Charts
-    st.header("📈 Analytics")
+    st.header("Analytics")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        # Supplier Spend
+
         supplier_spend = filtered_orders.groupby('supplier_id')['total_value'].sum().reset_index()
         supplier_spend = supplier_spend.sort_values('total_value', ascending=False).head(10)
         
@@ -137,13 +132,13 @@ def main():
         st.plotly_chart(fig_spend, use_container_width=True)
     
     with col2:
-        # Stock Status
+
         stock_status_counts = inventory['stock_status'].value_counts()
         fig_stock = px.pie(values=stock_status_counts.values, names=stock_status_counts.index,
                           title="Stock Status Distribution")
         st.plotly_chart(fig_stock, use_container_width=True)
     
-    # Supplier Performance
+
     supplier_perf = filtered_orders.groupby('supplier_id').agg({
         'defect_rate': 'mean',
         'lead_time': 'mean',

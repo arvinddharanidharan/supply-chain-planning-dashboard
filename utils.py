@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
 
 def calculate_eoq(annual_demand, ordering_cost, holding_cost):
     """Calculate Economic Order Quantity"""

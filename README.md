@@ -1,8 +1,8 @@
-# 📊 Supply Chain Planning & KPI Optimization Dashboard
+# Supply Chain Planning & KPI Optimization Dashboard
 
 A comprehensive supply chain planning cockpit that monitors real business KPIs, process compliance, and provides optimization recommendations for tactical and commercial planning.
 
-## 🎯 Project Overview
+## Project Overview
 
 This dashboard simulates a professional supply chain planning system focusing on:
 - **Process Compliance Monitoring** - Track planning process adherence and "happy path" performance
@@ -11,7 +11,7 @@ This dashboard simulates a professional supply chain planning system focusing on
 - **Demand Forecasting** - ARIMA and Prophet models with accuracy tracking
 - **KPI Dashboards** - Real-time monitoring of critical supply chain metrics
 
-## 🏭 Business Value
+## Business Value
 
 ### Real-World KPIs Tracked
 - **On-Time Delivery (OTD) %** - Supplier delivery performance vs. targets
@@ -27,7 +27,7 @@ This dashboard simulates a professional supply chain planning system focusing on
 - **Supplier Rationalization** - Performance-based supplier recommendations
 - **Inventory Exposure Management** - Overstock and shortage risk mitigation
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 supply-chain-planning-dashboard/
@@ -46,7 +46,7 @@ supply-chain-planning-dashboard/
 └── README.md                     # This file
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Option 1: One-Click Launch
 ```bash
@@ -73,36 +73,36 @@ streamlit run app.py
 jupyter notebook notebooks/
 ```
 
-## 📊 Dashboard Features
+## Dashboard Features
 
-### 🎯 KPI Monitoring
+### KPI Monitoring
 - **Real-time Metrics** - OTD%, Process Compliance, Defect Rates
 - **Trend Analysis** - Monthly performance tracking with targets
 - **Alert System** - Critical stock levels and compliance issues
 
-### 📈 Performance Analytics
+### Performance Analytics
 - **Supplier Performance Matrix** - Lead time vs. quality scatter plot
 - **ABC Analysis** - Value-based product classification
 - **Lead Time Distribution** - Variance analysis vs. targets
 - **Compliance Breakdown** - Process adherence by category
 
-### 📦 Inventory Management
+### Inventory Management
 - **Stock Status Dashboard** - Critical, low, and normal stock levels
 - **EOQ vs Current Stock** - Optimization opportunities visualization
 - **Reorder Alerts** - Automated recommendations with priorities
 - **Exposure Risk Matrix** - Stockout vs. overstock analysis
 
-### ⚙️ Process Compliance
+### Process Compliance
 - **Happy Path Tracking** - End-to-end process success rate
 - **Non-Compliance Analysis** - Root cause identification
 - **Parameter Outlier Detection** - Planning setup standardization
 
-### 💡 Optimization Engine
+### Optimization Engine
 - **Automated Recommendations** - Lead time, quality, and inventory improvements
 - **Cost Impact Analysis** - Financial implications of changes
 - **Priority Scoring** - Critical, high, medium priority actions
 
-## 🔬 Advanced Analytics
+## Advanced Analytics
 
 ### Demand Forecasting
 - **ARIMA Models** - Time series trend analysis
@@ -122,7 +122,7 @@ jupyter notebook notebooks/
 - **Parameter Standardization** - Outlier detection and recommendations
 - **Compliance Monitoring** - Process adherence measurement
 
-## 📈 Key Insights Generated
+## Key Insights Generated
 
 ### Operational Excellence
 - Identify suppliers requiring lead time improvement
@@ -142,7 +142,7 @@ jupyter notebook notebooks/
 - Inventory policy optimization
 - Demand sensing improvement areas
 
-## 🛠️ Technical Implementation
+## Technical Implementation
 
 ### Data Pipeline
 - **Synthetic Data Generation** - Realistic supply chain scenarios
@@ -162,7 +162,7 @@ jupyter notebook notebooks/
 - **Inventory Policies** - Automated parameter recommendations
 - **Alert Systems** - Exception-based notifications
 
-## 🎯 Use Cases
+## Use Cases
 
 ### Supply Chain Planners
 - Monitor daily KPIs and process compliance
@@ -188,7 +188,7 @@ jupyter notebook notebooks/
 - Assess working capital efficiency
 - Drive continuous improvement
 
-## 🔮 Future Enhancements
+## Future Enhancements
 
 - [ ] **Real-time Data Integration** - ERP system connectivity
 - [ ] **Machine Learning Models** - Advanced demand sensing
@@ -197,7 +197,7 @@ jupyter notebook notebooks/
 - [ ] **Mobile Dashboard** - On-the-go monitoring
 - [ ] **API Integration** - External system connectivity
 
-## 📞 Contact
+## Contact
 
 **Project Showcase** - [GitHub Repository](https://github.com/your-username/supply-chain-planning-dashboard)  
 **LinkedIn** - [Your Professional Profile](https://linkedin.com/in/your-profile)  

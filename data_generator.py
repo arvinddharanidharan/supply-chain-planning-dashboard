@@ -132,8 +132,8 @@ if __name__ == "__main__":
     products.to_csv('data/products.csv', index=False)
     suppliers.to_csv('data/suppliers.csv', index=False)
     
-    print(f"✅ Generated datasets:")
-    print(f"   📦 Orders: {len(orders)} records")
-    print(f"   📊 Inventory: {len(inventory)} items")
-    print(f"   🏭 Products: {len(products)} items")
-    print(f"   🚚 Suppliers: {len(suppliers)} suppliers")
+    print(f"Generated datasets:")
+    print(f"Orders: {len(orders)} records")
+    print(f"Inventory: {len(inventory)} items")
+    print(f"Products: {len(products)} items")
+    print(f"Suppliers: {len(suppliers)} suppliers")
