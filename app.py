@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
+from datetime import datetime, timedelta
 
 # Streamlit page config
 st.set_page_config(
@@ -30,6 +31,41 @@ def calculate_process_compliance(df, process_steps):
             compliance_scores.append(compliance)
     return np.mean(compliance_scores) if compliance_scores else 0
 
+def simple_moving_average_forecast(data, window=7, forecast_days=30):
+    """Simple moving average forecast"""
+    if len(data) < window:
+        return np.full(forecast_days, data.mean())
+    
+    # Calculate moving average
+    ma = data.rolling(window=window).mean().iloc[-1]
+    
+    # Add trend component
+    recent_trend = (data.iloc[-1] - data.iloc[-window]) / window
+    
+    # Generate forecast
+    forecast = []
+    for i in range(forecast_days):
+        forecast_value = ma + (recent_trend * i)
+        forecast.append(max(0, forecast_value))  # Ensure non-negative
+    
+    return np.array(forecast)
+
+def calculate_forecast_accuracy(actual, forecast):
+    """Calculate MAPE (Mean Absolute Percentage Error)"""
+    if len(actual) == 0 or len(forecast) == 0:
+        return 0
+    
+    actual = np.array(actual)
+    forecast = np.array(forecast)
+    
+    # Avoid division by zero
+    mask = actual != 0
+    if not mask.any():
+        return 0
+    
+    mape = np.mean(np.abs((actual[mask] - forecast[mask]) / actual[mask])) * 100
+    return max(0, 100 - mape)  # Convert to accuracy percentage
+
 @st.cache_data
 def load_data():
     try:
@@ -41,6 +77,75 @@ def load_data():
     except FileNotFoundError:
         st.error("Data files not found. Please run data_generator.py first.")
         st.stop()
+
+def create_demand_forecast_chart(orders_df):
+    """Create demand forecast visualization"""
+    # Aggregate daily demand
+    daily_demand = orders_df.groupby('order_date')['quantity'].sum().reset_index()
+    daily_demand = daily_demand.set_index('order_date').resample('D').sum().fillna(0)
+    
+    # Split data for training and testing
+    split_point = int(len(daily_demand) * 0.8)
+    train_data = daily_demand.iloc[:split_point]
+    test_data = daily_demand.iloc[split_point:]
+    
+    # Generate forecast
+    forecast_values = simple_moving_average_forecast(train_data['quantity'], window=7, forecast_days=len(test_data))
+    
+    # Calculate accuracy
+    accuracy = calculate_forecast_accuracy(test_data['quantity'].values, forecast_values)
+    
+    # Create future forecast
+    future_dates = pd.date_range(start=daily_demand.index[-1] + timedelta(days=1), periods=30, freq='D')
+    future_forecast = simple_moving_average_forecast(daily_demand['quantity'], window=7, forecast_days=30)
+    
+    # Create plot
+    fig = go.Figure()
+    
+    # Historical data
+    fig.add_trace(go.Scatter(
+        x=train_data.index,
+        y=train_data['quantity'],
+        mode='lines',
+        name='Historical Demand',
+        line=dict(color='blue')
+    ))
+    
+    # Test data (actual)
+    fig.add_trace(go.Scatter(
+        x=test_data.index,
+        y=test_data['quantity'],
+        mode='lines',
+        name='Actual Demand',
+        line=dict(color='green')
+    ))
+    
+    # Test forecast
+    fig.add_trace(go.Scatter(
+        x=test_data.index,
+        y=forecast_values,
+        mode='lines',
+        name='Forecast (Test)',
+        line=dict(color='red', dash='dash')
+    ))
+    
+    # Future forecast
+    fig.add_trace(go.Scatter(
+        x=future_dates,
+        y=future_forecast,
+        mode='lines',
+        name='Future Forecast',
+        line=dict(color='orange', dash='dot')
+    ))
+    
+    fig.update_layout(
+        title=f"Demand Forecast (Accuracy: {accuracy:.1f}%)",
+        xaxis_title="Date",
+        yaxis_title="Daily Demand (Units)",
+        hovermode='x unified'
+    )
+    
+    return fig, accuracy
 
 def main():
     st.title("📊 Supply Chain Planning & KPI Dashboard")
@@ -112,6 +217,45 @@ def main():
         critical_stock = (inventory['stock_status'] == 'Critical').sum()
         st.metric("Critical Stock Items", critical_stock,
                  delta=f"-{critical_stock}" if critical_stock > 0 else "0")
+    
+    # Demand Forecasting Section
+    st.header("🔮 Demand Forecasting")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # Demand forecast chart
+        forecast_fig, forecast_accuracy = create_demand_forecast_chart(filtered_orders)
+        st.plotly_chart(forecast_fig, use_container_width=True)
+    
+    with col2:
+        # Forecast metrics and insights
+        st.subheader("📊 Forecast Performance")
+        
+        # Calculate demand statistics
+        daily_demand = filtered_orders.groupby('order_date')['quantity'].sum()
+        demand_volatility = daily_demand.std() / daily_demand.mean() if daily_demand.mean() > 0 else 0
+        
+        col2a, col2b = st.columns(2)
+        with col2a:
+            st.metric("Forecast Accuracy", f"{forecast_accuracy:.1f}%")
+            st.metric("Avg Daily Demand", f"{daily_demand.mean():.0f}")
+        
+        with col2b:
+            st.metric("Demand Volatility", f"{demand_volatility:.2f}")
+            st.metric("Peak Demand", f"{daily_demand.max():.0f}")
+        
+        # Forecast insights
+        st.subheader("💡 Forecast Insights")
+        if forecast_accuracy >= 80:
+            st.success("✅ High forecast accuracy - reliable for planning")
+        elif forecast_accuracy >= 60:
+            st.warning("⚠️ Moderate accuracy - monitor closely")
+        else:
+            st.error("🔴 Low accuracy - improve demand sensing")
+        
+        if demand_volatility > 0.5:
+            st.info("📈 High demand volatility detected - consider safety stock increase")
     
     # Charts Row 1
     st.header("📈 Performance Analytics")
