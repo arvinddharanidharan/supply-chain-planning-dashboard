@@ -2,23 +2,45 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import numpy as np
-from utils import *
 
+# Streamlit page config
 st.set_page_config(
     page_title="Supply Chain Planning Dashboard",
     page_icon="📊",
     layout="wide"
 )
 
+# Utility functions
+def calculate_otd_percentage(df):
+    """Calculate On-Time Delivery percentage"""
+    if len(df) == 0:
+        return 0
+    on_time = df['delivery_date'] <= df['planned_delivery']
+    return (on_time.sum() / len(df)) * 100
+
+def calculate_process_compliance(df, process_steps):
+    """Calculate process compliance percentage"""
+    if len(df) == 0:
+        return 0
+    compliance_scores = []
+    for step in process_steps:
+        if step in df.columns:
+            compliance = (df[step] == 'Compliant').sum() / len(df) * 100
+            compliance_scores.append(compliance)
+    return np.mean(compliance_scores) if compliance_scores else 0
+
 @st.cache_data
 def load_data():
-    orders = pd.read_csv('data/orders.csv', parse_dates=['order_date', 'planned_delivery', 'delivery_date'])
-    inventory = pd.read_csv('data/inventory.csv')
-    products = pd.read_csv('data/products.csv')
-    suppliers = pd.read_csv('data/suppliers.csv')
-    return orders, inventory, products, suppliers
+    try:
+        orders = pd.read_csv('data/orders.csv', parse_dates=['order_date', 'planned_delivery', 'delivery_date'])
+        inventory = pd.read_csv('data/inventory.csv')
+        products = pd.read_csv('data/products.csv')
+        suppliers = pd.read_csv('data/suppliers.csv')
+        return orders, inventory, products, suppliers
+    except FileNotFoundError:
+        st.error("Data files not found. Please run data_generator.py first.")
+        st.stop()
 
 def main():
     st.title("📊 Supply Chain Planning & KPI Dashboard")
@@ -68,7 +90,7 @@ def main():
     with col1:
         otd_pct = calculate_otd_percentage(filtered_orders)
         st.metric("On-Time Delivery %", f"{otd_pct:.1f}%", 
-                 delta=f"{otd_pct-85:.1f}%" if otd_pct >= 85 else f"{otd_pct-85:.1f}%")
+                 delta=f"{otd_pct-85:.1f}%")
     
     with col2:
         avg_lead_time = filtered_orders['lead_time'].mean()
@@ -84,7 +106,7 @@ def main():
     with col4:
         avg_defect_rate = filtered_orders['defect_rate'].mean()
         st.metric("Avg Defect Rate", f"{avg_defect_rate:.2f}%",
-                 delta=f"{2.0-avg_defect_rate:.2f}%" if avg_defect_rate <= 2.0 else f"{2.0-avg_defect_rate:.2f}%")
+                 delta=f"{2.0-avg_defect_rate:.2f}%")
     
     with col5:
         critical_stock = (inventory['stock_status'] == 'Critical').sum()
@@ -215,60 +237,6 @@ def main():
             st.plotly_chart(fig_root, use_container_width=True)
         else:
             st.success("✅ No compliance issues detected")
-    
-    # Recommendations Section
-    st.header("💡 Optimization Recommendations")
-    
-    # Generate recommendations
-    recommendations = []
-    
-    # Lead time recommendations
-    high_lead_time_suppliers = supplier_perf[supplier_perf['avg_lead_time'] > supplier_perf['avg_lead_time'].quantile(0.8)]
-    for _, supplier in high_lead_time_suppliers.iterrows():
-        recommendations.append({
-            'Type': 'Lead Time',
-            'Priority': 'High',
-            'Recommendation': f"Supplier {supplier['supplier_id']}: Reduce lead time by {supplier['avg_lead_time'] - supplier_perf['avg_lead_time'].median():.1f} days",
-            'Impact': 'Improved OTD, reduced inventory'
-        })
-    
-    # Quality recommendations
-    high_defect_suppliers = supplier_perf[supplier_perf['avg_defect_rate'] > 3.0]
-    for _, supplier in high_defect_suppliers.iterrows():
-        recommendations.append({
-            'Type': 'Quality',
-            'Priority': 'Critical',
-            'Recommendation': f"Supplier {supplier['supplier_id']}: Implement quality improvement plan (current defect rate: {supplier['avg_defect_rate']:.2f}%)",
-            'Impact': 'Reduced waste, improved customer satisfaction'
-        })
-    
-    # Inventory recommendations
-    excess_stock = inventory[inventory['current_stock'] > inventory['eoq'] * 2]
-    for _, item in excess_stock.head(5).iterrows():
-        recommendations.append({
-            'Type': 'Inventory',
-            'Priority': 'Medium',
-            'Recommendation': f"Product {item['product_id']}: Reduce EOQ by {((item['current_stock'] / item['eoq']) - 1) * 100:.0f}% to optimize carrying costs",
-            'Impact': 'Reduced working capital, lower storage costs'
-        })
-    
-    if recommendations:
-        rec_df = pd.DataFrame(recommendations)
-        
-        # Color code by priority
-        def color_priority(val):
-            if val == 'Critical':
-                return 'background-color: #ffebee'
-            elif val == 'High':
-                return 'background-color: #fff3e0'
-            return 'background-color: #e8f5e8'
-        
-        st.dataframe(
-            rec_df.style.applymap(color_priority, subset=['Priority']),
-            use_container_width=True
-        )
-    else:
-        st.success("✅ All processes are optimized - no immediate recommendations")
 
 if __name__ == "__main__":
     main()
