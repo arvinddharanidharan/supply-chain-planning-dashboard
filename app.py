@@ -257,6 +257,7 @@ def filter_data(orders, products, filters):
 def overview_tab(filtered_orders, inventory, products, suppliers):
     """Overview dashboard tab"""
     st.markdown("### 📊 Executive Summary")
+    st.caption("Key performance indicators and financial metrics overview")
     
     # Key metrics row
     col1, col2, col3, col4, col5 = st.columns(5)
@@ -357,6 +358,7 @@ def overview_tab(filtered_orders, inventory, products, suppliers):
 def inventory_tab(inventory, products, open_po):
     """Inventory management tab"""
     st.markdown("### 📦 Inventory Management")
+    st.caption("Stock levels, reorder recommendations, and inventory optimization")
     
     # Inventory alerts
     critical_items = inventory[inventory['stock_status'] == 'Critical']
@@ -375,6 +377,7 @@ def inventory_tab(inventory, products, open_po):
     
     # Reorder recommendations
     st.markdown("#### 🔄 Reorder Recommendations")
+    st.caption("Items requiring immediate attention based on current stock levels and reorder points")
     
     reorder_items = inventory[inventory['current_stock'] <= inventory['rop']].copy()
     if len(reorder_items) > 0:
@@ -421,15 +424,16 @@ def inventory_tab(inventory, products, open_po):
     
     # Open Purchase Orders
     st.markdown("#### 📋 Open Purchase Orders")
+    st.caption("Current purchase orders pending delivery and their status")
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Total Open POs", len(open_po))
+        st.metric("Total Open POs", len(open_po), help="Number of purchase orders currently open and pending delivery")
     with col2:
-        st.metric("Total PO Value", f"${open_po['total_value'].sum():,.0f}")
+        st.metric("Total PO Value", f"${open_po['total_value'].sum():,.0f}", help="Total monetary value of all open purchase orders")
     with col3:
         delayed_pos = len(open_po[open_po['status'] == 'Delayed'])
-        st.metric("Delayed POs", delayed_pos)
+        st.metric("Delayed POs", delayed_pos, help="Number of purchase orders that are delayed beyond expected delivery date")
     
     # PO status breakdown
     po_status = open_po['status'].value_counts()
@@ -441,6 +445,7 @@ def inventory_tab(inventory, products, open_po):
 def suppliers_tab(filtered_orders, suppliers, open_po):
     """Suppliers performance tab"""
     st.markdown("### 🏭 Supplier Performance")
+    st.caption("Supplier scorecards, performance matrix, and relationship management")
     
     # Supplier performance matrix
     supplier_perf = filtered_orders.groupby('supplier_id').agg({
@@ -468,6 +473,7 @@ def suppliers_tab(filtered_orders, suppliers, open_po):
     
     # Supplier scorecards
     st.markdown("#### 📊 Supplier Scorecards")
+    st.caption("Performance rankings based on delivery, quality, and lead time metrics")
     
     # Add supplier details
     supplier_details = supplier_perf.merge(suppliers, on='supplier_id')
@@ -497,6 +503,7 @@ def suppliers_tab(filtered_orders, suppliers, open_po):
 def compliance_tab(filtered_orders):
     """Process compliance tab"""
     st.markdown("### ✅ Process Compliance Analysis")
+    st.caption("Happy path tracking, compliance rates, and process optimization")
     
     # Happy path analysis
     happy_path_orders = filtered_orders[
@@ -512,23 +519,24 @@ def compliance_tab(filtered_orders):
     
     with col1:
         st.metric("Happy Path Rate", f"{happy_path_rate:.1f}%",
-                 help="Orders following optimal process flow")
+                 help="Percentage of orders following optimal process flow: compliant MRP & setup, on-time delivery, and low defect rate")
     
     with col2:
         mrp_compliance = (filtered_orders['mrp_compliance'] == 'Compliant').mean() * 100
-        st.metric("MRP Compliance", f"{mrp_compliance:.1f}%")
+        st.metric("MRP Compliance", f"{mrp_compliance:.1f}%", help="Percentage of orders following proper Material Requirements Planning processes")
     
     with col3:
         setup_compliance = (filtered_orders['setup_compliance'] == 'Compliant').mean() * 100
-        st.metric("Setup Compliance", f"{setup_compliance:.1f}%")
+        st.metric("Setup Compliance", f"{setup_compliance:.1f}%", help="Percentage of orders following proper production setup procedures")
     
     with col4:
         quality_orders = len(filtered_orders[filtered_orders['defect_rate'] < 1.0])
         quality_rate = quality_orders / len(filtered_orders) * 100 if len(filtered_orders) > 0 else 0
-        st.metric("Quality Orders", f"{quality_rate:.1f}%")
+        st.metric("Quality Orders", f"{quality_rate:.1f}%", help="Percentage of orders with defect rate below 1% threshold")
     
     # Failed orders drill-down
     st.markdown("#### 🔍 Non-Compliant Orders Analysis")
+    st.caption("Detailed breakdown of orders that failed to follow optimal processes")
     
     failed_orders = filtered_orders[
         (filtered_orders['mrp_compliance'] == 'Non-Compliant') | 
@@ -577,6 +585,7 @@ def compliance_tab(filtered_orders):
 def forecast_tab(filtered_orders, products):
     """Forecasting and scenario analysis tab"""
     st.markdown("### 📈 Demand Forecasting & Scenarios")
+    st.caption("Forecast accuracy analysis and scenario planning simulation")
     
     # Generate forecast data
     forecast_data = generate_forecast_data(filtered_orders)
@@ -587,15 +596,15 @@ def forecast_tab(filtered_orders, products):
     with col1:
         mape = calculate_mape(forecast_data['actual'], forecast_data['forecast'])
         st.metric("Forecast Accuracy (MAPE)", f"{mape:.1f}%",
-                 help="Mean Absolute Percentage Error - lower is better")
+                 help="Mean Absolute Percentage Error - measures forecast accuracy, lower values indicate better forecasting")
     
     with col2:
         accuracy = 100 - mape
-        st.metric("Forecast Accuracy", f"{accuracy:.1f}%")
+        st.metric("Forecast Accuracy", f"{accuracy:.1f}%", help="Overall forecast accuracy percentage (100% - MAPE). Higher values indicate better forecasting performance")
     
     with col3:
         bias = (forecast_data['forecast'] - forecast_data['actual']).mean()
-        st.metric("Forecast Bias", f"{bias:+.0f} units")
+        st.metric("Forecast Bias", f"{bias:+.0f} units", help="Average difference between forecast and actual demand. Positive = over-forecasting, Negative = under-forecasting")
     
     # Demand vs Forecast chart
     fig_forecast = go.Figure()
@@ -608,6 +617,7 @@ def forecast_tab(filtered_orders, products):
     
     # Scenario simulation
     st.markdown("#### 🎯 Scenario Simulation")
+    st.caption("Test the impact of changes in lead times and demand on key performance metrics")
     
     col1, col2 = st.columns(2)
     
@@ -623,11 +633,11 @@ def forecast_tab(filtered_orders, products):
             col1, col2, col3 = st.columns(3)
             
             with col1:
-                st.metric("OTD Impact", f"{scenario_results['otd_change']:+.1f}%")
+                st.metric("OTD Impact", f"{scenario_results['otd_change']:+.1f}%", help="Expected change in On-Time Delivery percentage based on scenario parameters")
             with col2:
-                st.metric("Inventory Impact", f"${scenario_results['inventory_change']:+,.0f}")
+                st.metric("Inventory Impact", f"${scenario_results['inventory_change']:+,.0f}", help="Expected change in inventory value due to demand fluctuations")
             with col3:
-                st.metric("Cost Impact", f"${scenario_results['cost_change']:+,.0f}")
+                st.metric("Cost Impact", f"${scenario_results['cost_change']:+,.0f}", help="Expected change in total costs including quality and penalty costs")
 
 def generate_forecast_data(orders):
     """Generate realistic forecast vs actual data"""
