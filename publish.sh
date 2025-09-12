@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo "🚀 Publishing Supply Chain Dashboard to GitHub..."
+echo ""
+echo "Please create the repository manually:"
+echo "1. Go to: https://github.com/arvinddharanidharan"
+echo "2. Click 'New repository'"
+echo "3. Name: supply-chain-planning-dashboard"
+echo "4. Description: 📊 Supply Chain Planning & KPI Optimization Dashboard"
+echo "5. Set to Public"
+echo "6. Don't initialize with README"
+echo "7. Click 'Create repository'"
+echo ""
+echo "Then run: git push -u origin main"
+echo ""
+echo "Repository URL will be:"
+echo "https://github.com/arvinddharanidharan/supply-chain-planning-dashboard"
