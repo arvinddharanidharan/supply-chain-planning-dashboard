@@ -44,20 +44,25 @@ def generate_supply_chain_data(n_orders=5000, n_products=100, n_suppliers=20):
         order_date = start_date + timedelta(days=np.random.randint(0, 365))
         planned_delivery = order_date + timedelta(days=supplier['lead_time_target'])
         
-        # Simulate actual delivery with some variance
-        lead_time_variance = np.random.normal(0, 2)
-        actual_delivery = planned_delivery + timedelta(days=int(lead_time_variance))
+        # Simulate actual delivery with some variance (more realistic)
+        lead_time_variance = np.random.normal(0, 1.5)  # Reduced variance
+        actual_delivery = planned_delivery + timedelta(days=max(0, int(lead_time_variance)))
         
-        quantity = np.random.randint(10, 1000)
-        unit_price = product['unit_cost'] * np.random.uniform(0.9, 1.1)
+        quantity = np.random.randint(50, 500)  # More realistic order quantities
+        unit_price = product['unit_cost'] * np.random.uniform(0.95, 1.05)  # Tighter price variance
         total_value = quantity * unit_price
         
-        # Quality metrics
-        defect_rate = np.random.uniform(0, 5) if supplier['quality_rating'] < 95 else np.random.uniform(0, 1)
+        # Quality metrics (more realistic defect rates)
+        if supplier['quality_rating'] > 95:
+            defect_rate = np.random.uniform(0, 0.5)
+        elif supplier['quality_rating'] > 90:
+            defect_rate = np.random.uniform(0, 2)
+        else:
+            defect_rate = np.random.uniform(0, 4)
         
-        # Process compliance
-        mrp_compliance = np.random.choice(['Compliant', 'Non-Compliant'], p=[0.85, 0.15])
-        setup_compliance = np.random.choice(['Compliant', 'Non-Compliant'], p=[0.90, 0.10])
+        # Process compliance (higher compliance rates)
+        mrp_compliance = np.random.choice(['Compliant', 'Non-Compliant'], p=[0.92, 0.08])
+        setup_compliance = np.random.choice(['Compliant', 'Non-Compliant'], p=[0.95, 0.05])
         
         # Financial calculations
         defective_units = quantity * (defect_rate / 100)
@@ -89,13 +94,13 @@ def generate_supply_chain_data(n_orders=5000, n_products=100, n_suppliers=20):
     # Generate inventory data
     inventory_data = []
     for product in products:
-        current_stock = np.random.randint(0, 2000)
-        safety_stock = np.random.randint(50, 300)
-        eoq = np.random.randint(100, 800)
+        current_stock = np.random.randint(50, 1500)  # Avoid zero stock
+        safety_stock = np.random.randint(25, 200)  # More realistic safety stock
+        eoq = np.random.randint(100, 600)  # More realistic EOQ
         
-        # Calculate reorder point
-        avg_demand = np.random.uniform(10, 100)
-        avg_lead_time = np.random.randint(5, 25)
+        # Calculate reorder point (more realistic)
+        avg_demand = np.random.uniform(20, 80)
+        avg_lead_time = np.random.randint(7, 21)
         rop = avg_demand * avg_lead_time + safety_stock
         
         # Financial calculations
