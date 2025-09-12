@@ -89,8 +89,8 @@ def generate_open_purchase_orders(orders, suppliers):
     open_orders = []
     for i in range(n_open):
         supplier = suppliers.sample(1).iloc[0]
-        order_date = datetime.now() - timedelta(days=np.random.randint(1, 30))
-        expected_delivery = order_date + timedelta(days=supplier['lead_time_target'])
+        order_date = datetime.now() - timedelta(days=int(np.random.randint(1, 30)))
+        expected_delivery = order_date + timedelta(days=int(supplier['lead_time_target']))
         
         open_orders.append({
             'po_number': f'PO-{2025000 + i}',
@@ -117,7 +117,7 @@ def generate_open_customer_orders(products):
     for i in range(n_open):
         product = products.sample(1).iloc[0]
         order_date = datetime.now() - timedelta(days=np.random.randint(1, 14))
-        promised_delivery = order_date + timedelta(days=np.random.randint(3, 21))
+        promised_delivery = order_date + timedelta(days=int(np.random.randint(3, 21)))
         
         open_orders.append({
             'co_number': f'CO-{3025000 + i}',
