@@ -94,9 +94,9 @@ def generate_supply_chain_data(n_orders=5000, n_products=100, n_suppliers=20):
     # Generate inventory data
     inventory_data = []
     for product in products:
-        current_stock = np.random.randint(50, 1500)  # Avoid zero stock
-        safety_stock = np.random.randint(25, 200)  # More realistic safety stock
-        eoq = np.random.randint(100, 600)  # More realistic EOQ
+        current_stock = np.random.randint(200, 3000)  # Higher stock levels for realistic turnover
+        safety_stock = np.random.randint(50, 300)  # More realistic safety stock
+        eoq = np.random.randint(200, 800)  # More realistic EOQ
         
         # Calculate reorder point (more realistic)
         avg_demand = np.random.uniform(20, 80)
