@@ -12,45 +12,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# Utility functions
-def calculate_otd_percentage(df):
-    """Calculate On-Time Delivery percentage"""
-    if len(df) == 0:
-        return 0
-    on_time = df['delivery_date'] <= df['planned_delivery']
-    return (on_time.sum() / len(df)) * 100
-
-def calculate_process_compliance(df, process_steps):
-    """Calculate process compliance percentage"""
-    if len(df) == 0:
-        return 0
-    compliance_scores = []
-    for step in process_steps:
-        if step in df.columns:
-            compliance = (df[step] == 'Compliant').sum() / len(df) * 100
-            compliance_scores.append(compliance)
-    return np.mean(compliance_scores) if compliance_scores else 0
-
-def calculate_copq(orders_df):
-    """Calculate Cost of Poor Quality"""
-    if 'quality_cost' in orders_df.columns and 'late_penalty' in orders_df.columns:
-        return orders_df['quality_cost'].sum() + orders_df['late_penalty'].sum()
-    return 0
-
-def calculate_working_capital(inventory_df):
-    """Calculate Working Capital tied in Inventory"""
-    if 'inventory_value' in inventory_df.columns:
-        return inventory_df['inventory_value'].sum()
-    return 0
-
-def calculate_inventory_turnover(orders_df, inventory_df):
-    """Calculate Inventory Turnover Ratio"""
-    cogs = orders_df['total_value'].sum()
-    if 'inventory_value' in inventory_df.columns:
-        avg_inventory = inventory_df['inventory_value'].mean()
-        return cogs / avg_inventory if avg_inventory > 0 else 0
-    return 0
-
 @st.cache_data
 def load_data():
     try:
@@ -88,19 +49,11 @@ def main():
         default=orders['category'].unique()
     )
     
-    # ABC Class filter
-    abc_classes = st.sidebar.multiselect(
-        "ABC Classification",
-        options=['A', 'B', 'C'],
-        default=['A', 'B', 'C']
-    )
-    
     # Filter data
     filtered_orders = orders[
         (orders['order_date'].dt.date >= date_range[0]) &
         (orders['order_date'].dt.date <= date_range[1]) &
-        (orders['category'].isin(categories)) &
-        (orders['abc_class'].isin(abc_classes))
+        (orders['category'].isin(categories))
     ]
     
     # Financial KPIs Row
@@ -109,27 +62,26 @@ def main():
     col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
-        copq = calculate_copq(filtered_orders)
+        copq = filtered_orders['quality_cost'].sum() + filtered_orders['late_penalty'].sum()
         st.metric("Cost of Poor Quality", f"${copq:,.0f}")
     
     with col2:
-        working_capital = calculate_working_capital(inventory)
-        st.metric("Working Capital (Inventory)", f"${working_capital:,.0f}")
+        working_capital = inventory['inventory_value'].sum()
+        st.metric("Working Capital", f"${working_capital:,.0f}")
     
     with col3:
         total_spend = filtered_orders['total_value'].sum()
-        st.metric("Total Procurement Spend", f"${total_spend:,.0f}")
+        st.metric("Procurement Spend", f"${total_spend:,.0f}")
     
     with col4:
-        inventory_turnover = calculate_inventory_turnover(filtered_orders, inventory)
-        st.metric("Inventory Turnover", f"{inventory_turnover:.1f}x")
+        cogs = filtered_orders['total_value'].sum()
+        avg_inventory = inventory['inventory_value'].mean()
+        turnover = cogs / avg_inventory if avg_inventory > 0 else 0
+        st.metric("Inventory Turnover", f"{turnover:.1f}x")
     
     with col5:
-        if 'carrying_cost' in inventory.columns:
-            carrying_cost = inventory['carrying_cost'].sum()
-        else:
-            carrying_cost = 0
-        st.metric("Annual Carrying Cost", f"${carrying_cost:,.0f}")
+        carrying_cost = inventory['carrying_cost'].sum()
+        st.metric("Carrying Cost", f"${carrying_cost:,.0f}")
     
     # Operational KPIs Row
     st.header("🎯 Operational Performance Indicators")
@@ -137,7 +89,8 @@ def main():
     col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
-        otd_pct = calculate_otd_percentage(filtered_orders)
+        on_time = (filtered_orders['delivery_date'] <= filtered_orders['planned_delivery']).sum()
+        otd_pct = (on_time / len(filtered_orders)) * 100 if len(filtered_orders) > 0 else 0
         st.metric("On-Time Delivery %", f"{otd_pct:.1f}%")
     
     with col2:
@@ -145,8 +98,10 @@ def main():
         st.metric("Avg Lead Time", f"{avg_lead_time:.1f} days")
     
     with col3:
-        process_compliance = calculate_process_compliance(filtered_orders, ['mrp_compliance', 'setup_compliance'])
-        st.metric("Process Compliance", f"{process_compliance:.1f}%")
+        mrp_compliant = (filtered_orders['mrp_compliance'] == 'Compliant').sum()
+        setup_compliant = (filtered_orders['setup_compliance'] == 'Compliant').sum()
+        compliance = ((mrp_compliant + setup_compliant) / (len(filtered_orders) * 2)) * 100
+        st.metric("Process Compliance", f"{compliance:.1f}%")
     
     with col4:
         avg_defect_rate = filtered_orders['defect_rate'].mean()
@@ -173,17 +128,42 @@ def main():
     
     with col2:
         # Cost of Poor Quality Breakdown
-        if 'quality_cost' in filtered_orders.columns and 'late_penalty' in filtered_orders.columns:
+        quality_cost_total = filtered_orders['quality_cost'].sum()
+        penalty_cost_total = filtered_orders['late_penalty'].sum()
+        
+        if quality_cost_total > 0 or penalty_cost_total > 0:
             quality_costs = {
-                'Defective Products': filtered_orders['quality_cost'].sum(),
-                'Late Delivery Penalties': filtered_orders['late_penalty'].sum()
+                'Defective Products': quality_cost_total,
+                'Late Delivery Penalties': penalty_cost_total
             }
             
             fig_copq = px.pie(values=list(quality_costs.values()), names=list(quality_costs.keys()),
                              title="Cost of Poor Quality Breakdown")
             st.plotly_chart(fig_copq, use_container_width=True)
         else:
-            st.info("Quality cost data not available")
+            st.info("No quality costs in selected period")
+    
+    # Working Capital Analysis
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # Inventory Value by Category
+        inventory_with_products = inventory.merge(products, on='product_id')
+        category_value = inventory_with_products.groupby('category')['inventory_value'].sum().reset_index()
+        
+        fig_inv_value = px.bar(category_value, x='category', y='inventory_value',
+                              title="Working Capital by Category",
+                              labels={'inventory_value': 'Inventory Value ($)', 'category': 'Category'})
+        st.plotly_chart(fig_inv_value, use_container_width=True)
+    
+    with col2:
+        # Carrying Cost vs Inventory Value
+        fig_carrying = px.scatter(inventory_with_products, x='inventory_value', y='carrying_cost',
+                                 color='category', size='current_stock',
+                                 title="Carrying Cost vs Inventory Value",
+                                 labels={'inventory_value': 'Inventory Value ($)',
+                                        'carrying_cost': 'Annual Carrying Cost ($)'})
+        st.plotly_chart(fig_carrying, use_container_width=True)
     
     # Performance Analytics
     st.header("📈 Performance Analytics")
@@ -192,14 +172,17 @@ def main():
     
     with col1:
         # OTD Trend
-        monthly_otd = filtered_orders.groupby(filtered_orders['order_date'].dt.to_period('M')).apply(
-            lambda x: calculate_otd_percentage(x)
-        ).reset_index()
-        monthly_otd['order_date'] = monthly_otd['order_date'].astype(str)
+        monthly_data = filtered_orders.groupby(filtered_orders['order_date'].dt.to_period('M')).agg({
+            'delivery_date': 'count',
+            'planned_delivery': lambda x: ((filtered_orders.loc[x.index, 'delivery_date'] <= 
+                                          filtered_orders.loc[x.index, 'planned_delivery']).sum())
+        }).reset_index()
+        monthly_data['otd_pct'] = (monthly_data['planned_delivery'] / monthly_data['delivery_date']) * 100
+        monthly_data['order_date'] = monthly_data['order_date'].astype(str)
         
-        fig_otd = px.line(monthly_otd, x='order_date', y=0, 
+        fig_otd = px.line(monthly_data, x='order_date', y='otd_pct', 
                          title="On-Time Delivery Trend",
-                         labels={'0': 'OTD %', 'order_date': 'Month'})
+                         labels={'otd_pct': 'OTD %', 'order_date': 'Month'})
         fig_otd.add_hline(y=95, line_dash="dash", line_color="green", 
                          annotation_text="Target: 95%")
         st.plotly_chart(fig_otd, use_container_width=True)
@@ -209,16 +192,50 @@ def main():
         supplier_perf = filtered_orders.groupby('supplier_id').agg({
             'delivery_date': 'count',
             'defect_rate': 'mean',
-            'lead_time': 'mean'
+            'lead_time': 'mean',
+            'total_value': 'sum'
         }).reset_index()
-        supplier_perf.columns = ['supplier_id', 'order_count', 'avg_defect_rate', 'avg_lead_time']
+        supplier_perf.columns = ['supplier_id', 'order_count', 'avg_defect_rate', 'avg_lead_time', 'total_spend']
         
         fig_supplier = px.scatter(supplier_perf, x='avg_lead_time', y='avg_defect_rate',
-                                 size='order_count', hover_data=['supplier_id'],
+                                 size='total_spend', hover_data=['supplier_id', 'order_count'],
                                  title="Supplier Performance Matrix",
                                  labels={'avg_lead_time': 'Avg Lead Time (days)',
                                         'avg_defect_rate': 'Avg Defect Rate (%)'})
         st.plotly_chart(fig_supplier, use_container_width=True)
+    
+    # Inventory Management Section
+    st.header("📦 Inventory Management")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        # Stock Status Distribution
+        stock_status_counts = inventory['stock_status'].value_counts()
+        fig_stock = px.pie(values=stock_status_counts.values, names=stock_status_counts.index,
+                          title="Stock Status Distribution")
+        st.plotly_chart(fig_stock, use_container_width=True)
+    
+    with col2:
+        # EOQ vs Current Stock
+        fig_eoq = px.scatter(inventory, x='current_stock', y='eoq',
+                            color='stock_status',
+                            title="Current Stock vs EOQ",
+                            labels={'current_stock': 'Current Stock',
+                                   'eoq': 'Economic Order Quantity'})
+        st.plotly_chart(fig_eoq, use_container_width=True)
+    
+    with col3:
+        # Reorder Recommendations
+        reorder_needed = inventory[inventory['current_stock'] < inventory['rop']]
+        st.subheader(f"🚨 Reorder Alerts ({len(reorder_needed)})")
+        
+        if len(reorder_needed) > 0:
+            reorder_display = reorder_needed[['product_id', 'current_stock', 'rop', 'eoq']].head(10)
+            reorder_display['shortage'] = reorder_display['rop'] - reorder_display['current_stock']
+            st.dataframe(reorder_display, use_container_width=True)
+        else:
+            st.success("✅ No immediate reorders needed")
 
 if __name__ == "__main__":
     main()
