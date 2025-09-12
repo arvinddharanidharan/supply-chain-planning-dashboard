@@ -31,6 +31,20 @@ def calculate_process_compliance(df, process_steps):
             compliance_scores.append(compliance)
     return np.mean(compliance_scores) if compliance_scores else 0
 
+def calculate_copq(orders_df):
+    """Calculate Cost of Poor Quality"""
+    return orders_df['quality_cost'].sum() + orders_df['late_penalty'].sum()
+
+def calculate_working_capital(inventory_df):
+    """Calculate Working Capital tied in Inventory"""
+    return inventory_df['inventory_value'].sum()
+
+def calculate_inventory_turnover(orders_df, inventory_df):
+    """Calculate Inventory Turnover Ratio"""
+    cogs = orders_df['total_value'].sum()
+    avg_inventory = inventory_df['inventory_value'].mean()
+    return cogs / avg_inventory if avg_inventory > 0 else 0
+
 def simple_moving_average_forecast(data, window=7, forecast_days=30):
     """Simple moving average forecast"""
     if len(data) < window:
@@ -75,6 +89,9 @@ def apply_scenario(orders_df, inventory_df, lead_time_change=0, demand_change=0)
     if lead_time_change != 0:
         scenario_orders['lead_time'] = scenario_orders['lead_time'] + lead_time_change
         scenario_orders['delivery_date'] = scenario_orders['planned_delivery'] + pd.Timedelta(days=lead_time_change)
+        # Recalculate late penalties
+        late_orders = scenario_orders['delivery_date'] > scenario_orders['planned_delivery']
+        scenario_orders.loc[late_orders, 'late_penalty'] = scenario_orders.loc[late_orders, 'total_value'] * 0.02
     
     # Apply demand changes
     if demand_change != 0:
@@ -93,20 +110,16 @@ def calculate_scenario_impact(baseline_orders, baseline_inventory, scenario_orde
     baseline_otd = calculate_otd_percentage(baseline_orders)
     scenario_otd = calculate_otd_percentage(scenario_orders)
     
-    baseline_lead_time = baseline_orders['lead_time'].mean()
-    scenario_lead_time = scenario_orders['lead_time'].mean()
+    baseline_copq = calculate_copq(baseline_orders)
+    scenario_copq = calculate_copq(scenario_orders)
     
     baseline_critical = (baseline_inventory['stock_status'] == 'Critical').sum()
     scenario_critical = (scenario_inventory['current_stock'] < scenario_inventory['rop']).sum()
     
-    baseline_demand = baseline_orders['quantity'].sum()
-    scenario_demand = scenario_orders['quantity'].sum()
-    
     return {
         'otd_change': scenario_otd - baseline_otd,
-        'lead_time_change': scenario_lead_time - baseline_lead_time,
+        'copq_change': scenario_copq - baseline_copq,
         'critical_items_change': scenario_critical - baseline_critical,
-        'demand_change': ((scenario_demand - baseline_demand) / baseline_demand) * 100 if baseline_demand > 0 else 0
     }
 
 @st.cache_data
@@ -270,8 +283,34 @@ def main():
         display_inventory = inventory
         impact = None
     
-    # KPI Metrics Row
-    st.header("🎯 Key Performance Indicators")
+    # Financial KPIs Row
+    st.header("💰 Financial Performance Indicators")
+    
+    col1, col2, col3, col4, col5 = st.columns(5)
+    
+    with col1:
+        copq = calculate_copq(display_orders)
+        delta_copq = f"${impact['copq_change']:+,.0f}" if impact else None
+        st.metric("Cost of Poor Quality", f"${copq:,.0f}", delta=delta_copq)
+    
+    with col2:
+        working_capital = calculate_working_capital(display_inventory)
+        st.metric("Working Capital (Inventory)", f"${working_capital:,.0f}")
+    
+    with col3:
+        total_spend = display_orders['total_value'].sum()
+        st.metric("Total Procurement Spend", f"${total_spend:,.0f}")
+    
+    with col4:
+        inventory_turnover = calculate_inventory_turnover(display_orders, display_inventory)
+        st.metric("Inventory Turnover", f"{inventory_turnover:.1f}x")
+    
+    with col5:
+        carrying_cost = display_inventory['carrying_cost'].sum()
+        st.metric("Annual Carrying Cost", f"${carrying_cost:,.0f}")
+    
+    # Operational KPIs Row
+    st.header("🎯 Operational Performance Indicators")
     
     col1, col2, col3, col4, col5 = st.columns(5)
     
@@ -282,8 +321,7 @@ def main():
     
     with col2:
         avg_lead_time = display_orders['lead_time'].mean()
-        delta_lt = f"{impact['lead_time_change']:+.1f} days" if impact else None
-        st.metric("Avg Lead Time", f"{avg_lead_time:.1f} days", delta=delta_lt)
+        st.metric("Avg Lead Time", f"{avg_lead_time:.1f} days")
     
     with col3:
         process_compliance = calculate_process_compliance(display_orders, ['mrp_compliance', 'setup_compliance'])
@@ -302,20 +340,68 @@ def main():
             delta_critical = None
         st.metric("Critical Stock Items", critical_stock, delta=delta_critical)
     
+    # Financial Analytics Section
+    st.header("💰 Financial Analytics")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # Procurement Spend by Supplier
+        supplier_spend = display_orders.groupby('supplier_id')['total_value'].sum().reset_index()
+        supplier_spend = supplier_spend.sort_values('total_value', ascending=False).head(10)
+        
+        fig_spend = px.bar(supplier_spend, x='supplier_id', y='total_value',
+                          title="Top 10 Suppliers by Spend",
+                          labels={'total_value': 'Spend ($)', 'supplier_id': 'Supplier'})
+        st.plotly_chart(fig_spend, use_container_width=True)
+    
+    with col2:
+        # Cost of Poor Quality Breakdown
+        quality_costs = {
+            'Defective Products': display_orders['quality_cost'].sum(),
+            'Late Delivery Penalties': display_orders['late_penalty'].sum()
+        }
+        
+        fig_copq = px.pie(values=list(quality_costs.values()), names=list(quality_costs.keys()),
+                         title="Cost of Poor Quality Breakdown")
+        st.plotly_chart(fig_copq, use_container_width=True)
+    
+    # Working Capital Analysis
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # Inventory Value by Category
+        inventory_with_products = display_inventory.merge(products, on='product_id')
+        category_value = inventory_with_products.groupby('category')['inventory_value'].sum().reset_index()
+        
+        fig_inv_value = px.bar(category_value, x='category', y='inventory_value',
+                              title="Working Capital by Category",
+                              labels={'inventory_value': 'Inventory Value ($)', 'category': 'Category'})
+        st.plotly_chart(fig_inv_value, use_container_width=True)
+    
+    with col2:
+        # Carrying Cost vs Inventory Value
+        fig_carrying = px.scatter(inventory_with_products, x='inventory_value', y='carrying_cost',
+                                 color='category', size='current_stock',
+                                 title="Carrying Cost vs Inventory Value",
+                                 labels={'inventory_value': 'Inventory Value ($)',
+                                        'carrying_cost': 'Annual Carrying Cost ($)'})
+        st.plotly_chart(fig_carrying, use_container_width=True)
+    
     # Scenario Impact Analysis
     if scenario_active:
-        st.header("📊 Scenario Impact Analysis")
+        st.header("📊 Scenario Financial Impact")
         
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.subheader("🚚 Delivery Impact")
-            if impact['otd_change'] < -5:
-                st.error(f"🔴 OTD drops by {abs(impact['otd_change']):.1f}%")
-            elif impact['otd_change'] < 0:
-                st.warning(f"🟡 OTD decreases by {abs(impact['otd_change']):.1f}%")
+            st.subheader("💸 Cost Impact")
+            if impact['copq_change'] > 10000:
+                st.error(f"🔴 COPQ increases by ${impact['copq_change']:,.0f}")
+            elif impact['copq_change'] > 0:
+                st.warning(f"🟡 COPQ increases by ${impact['copq_change']:,.0f}")
             else:
-                st.success(f"✅ OTD stable or improves")
+                st.success(f"✅ COPQ stable or decreases")
         
         with col2:
             st.subheader("📦 Inventory Impact")
@@ -330,7 +416,7 @@ def main():
             st.subheader("💰 Business Impact")
             total_value_change = (display_orders['total_value'].sum() - filtered_orders['total_value'].sum())
             if abs(total_value_change) > 100000:
-                st.info(f"💵 Order value change: ${total_value_change:,.0f}")
+                st.info(f"💵 Spend change: ${total_value_change:,.0f}")
             
             if impact['otd_change'] < -10:
                 st.error("⚠️ Significant customer service impact")
@@ -370,113 +456,6 @@ def main():
             st.warning("⚠️ Moderate accuracy - monitor closely")
         else:
             st.error("🔴 Low accuracy - improve demand sensing")
-        
-        if demand_volatility > 0.5:
-            st.info("📈 High demand volatility detected - consider safety stock increase")
-    
-    # Charts Row 1
-    st.header("📈 Performance Analytics")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # OTD Trend
-        monthly_otd = display_orders.groupby(display_orders['order_date'].dt.to_period('M')).apply(
-            lambda x: calculate_otd_percentage(x)
-        ).reset_index()
-        monthly_otd['order_date'] = monthly_otd['order_date'].astype(str)
-        
-        fig_otd = px.line(monthly_otd, x='order_date', y=0, 
-                         title="On-Time Delivery Trend",
-                         labels={'0': 'OTD %', 'order_date': 'Month'})
-        fig_otd.add_hline(y=95, line_dash="dash", line_color="green", 
-                         annotation_text="Target: 95%")
-        st.plotly_chart(fig_otd, use_container_width=True)
-    
-    with col2:
-        # Lead Time Distribution
-        fig_lead = px.histogram(display_orders, x='lead_time', nbins=20,
-                               title="Lead Time Distribution",
-                               labels={'lead_time': 'Lead Time (days)', 'count': 'Frequency'})
-        fig_lead.add_vline(x=display_orders['lead_time_target'].mean(), 
-                          line_dash="dash", line_color="red",
-                          annotation_text="Target")
-        st.plotly_chart(fig_lead, use_container_width=True)
-    
-    # Charts Row 2
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # Supplier Performance
-        supplier_perf = display_orders.groupby('supplier_id').agg({
-            'delivery_date': 'count',
-            'defect_rate': 'mean',
-            'lead_time': 'mean'
-        }).reset_index()
-        supplier_perf.columns = ['supplier_id', 'order_count', 'avg_defect_rate', 'avg_lead_time']
-        
-        fig_supplier = px.scatter(supplier_perf, x='avg_lead_time', y='avg_defect_rate',
-                                 size='order_count', hover_data=['supplier_id'],
-                                 title="Supplier Performance Matrix",
-                                 labels={'avg_lead_time': 'Avg Lead Time (days)',
-                                        'avg_defect_rate': 'Avg Defect Rate (%)'})
-        st.plotly_chart(fig_supplier, use_container_width=True)
-    
-    with col2:
-        # ABC Analysis
-        abc_summary = display_orders.groupby('abc_class').agg({
-            'total_value': 'sum',
-            'quantity': 'sum'
-        }).reset_index()
-        
-        fig_abc = px.pie(abc_summary, values='total_value', names='abc_class',
-                        title="Value Distribution by ABC Class")
-        st.plotly_chart(fig_abc, use_container_width=True)
-    
-    # Inventory Management Section
-    st.header("📦 Inventory Management")
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        # Stock Status Distribution
-        if scenario_active:
-            # Recalculate stock status for scenario
-            scenario_status = []
-            for _, row in display_inventory.iterrows():
-                if row['current_stock'] < row['rop']:
-                    scenario_status.append('Critical')
-                elif row['current_stock'] < row['rop'] * 1.5:
-                    scenario_status.append('Low')
-                else:
-                    scenario_status.append('Normal')
-            stock_status_counts = pd.Series(scenario_status).value_counts()
-        else:
-            stock_status_counts = display_inventory['stock_status'].value_counts()
-        
-        fig_stock = px.pie(values=stock_status_counts.values, names=stock_status_counts.index,
-                          title="Stock Status Distribution")
-        st.plotly_chart(fig_stock, use_container_width=True)
-    
-    with col2:
-        # EOQ vs Current Stock
-        fig_eoq = px.scatter(display_inventory, x='current_stock', y='eoq',
-                            title="Current Stock vs EOQ",
-                            labels={'current_stock': 'Current Stock',
-                                   'eoq': 'Economic Order Quantity'})
-        st.plotly_chart(fig_eoq, use_container_width=True)
-    
-    with col3:
-        # Reorder Recommendations
-        reorder_needed = display_inventory[display_inventory['current_stock'] < display_inventory['rop']]
-        st.subheader(f"🚨 Reorder Alerts ({len(reorder_needed)})")
-        
-        if len(reorder_needed) > 0:
-            reorder_display = reorder_needed[['product_id', 'current_stock', 'rop', 'eoq']].head(10)
-            reorder_display['shortage'] = reorder_display['rop'] - reorder_display['current_stock']
-            st.dataframe(reorder_display, use_container_width=True)
-        else:
-            st.success("✅ No immediate reorders needed")
 
 if __name__ == "__main__":
     main()
