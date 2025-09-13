@@ -146,7 +146,7 @@ def create_sidebar_filters(orders, suppliers, products):
         time_window = st.selectbox(
             "📅 Time Window",
             ["Last 30 Days", "Last 90 Days", "Last 6 Months", "Last Year", "All Time"],
-            index=4
+            index=0
         )
         
         # Date range based on time window
