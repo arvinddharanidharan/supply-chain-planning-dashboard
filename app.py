@@ -15,51 +15,178 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Professional CSS styling
+# Professional CSS styling with dark/light mode and color-blind support
 st.markdown("""
 <style>
+    /* Dark/Light mode compatible base styles */
     .main .block-container {
         padding-top: 1rem;
         padding-bottom: 2rem;
     }
+    
+    /* Metric cards with theme adaptation */
     .stMetric {
-        background-color: #ffffff;
+        background-color: var(--background-color, #ffffff);
         padding: 1rem;
         border-radius: 0.5rem;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        border: 1px solid #e5e7eb;
+        border: 1px solid var(--border-color, #e5e7eb);
+        transition: all 0.3s ease;
     }
+    
+    /* Dark mode metric cards */
+    [data-theme="dark"] .stMetric {
+        background-color: #374151;
+        border-color: #4b5563;
+        color: #f9fafb;
+    }
+    
+    /* Color-blind friendly metric highlights */
     .metric-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
         padding: 1.5rem;
         border-radius: 10px;
         color: white;
         margin: 0.5rem 0;
     }
+    
+    /* KPI containers with theme support */
     .kpi-container {
-        background-color: #f8fafc;
+        background-color: var(--secondary-bg, #f8fafc);
         padding: 1.5rem;
         border-radius: 10px;
-        border-left: 4px solid #3b82f6;
+        border-left: 4px solid #0ea5e9;
         margin: 1rem 0;
     }
-    h1 { color: #1e293b; font-weight: 700; }
-    h2 { color: #334155; font-weight: 600; margin-top: 2rem; }
-    h3 { color: #475569; font-weight: 500; }
-    .sidebar .sidebar-content { background-color: #f1f5f9; }
+    
+    [data-theme="dark"] .kpi-container {
+        background-color: #1f2937;
+        border-left-color: #06b6d4;
+    }
+    
+    /* Typography with theme adaptation */
+    h1 { 
+        color: var(--text-primary, #1e293b); 
+        font-weight: 700; 
+    }
+    h2 { 
+        color: var(--text-secondary, #334155); 
+        font-weight: 600; 
+        margin-top: 2rem; 
+    }
+    h3 { 
+        color: var(--text-tertiary, #475569); 
+        font-weight: 500; 
+    }
+    
+    [data-theme="dark"] h1 { color: #f9fafb; }
+    [data-theme="dark"] h2 { color: #e5e7eb; }
+    [data-theme="dark"] h3 { color: #d1d5db; }
+    
+    /* Sidebar styling */
+    .sidebar .sidebar-content { 
+        background-color: var(--sidebar-bg, #f1f5f9); 
+    }
+    
+    [data-theme="dark"] .sidebar .sidebar-content {
+        background-color: #111827;
+    }
+    
+    /* Tab styling with accessibility */
     .stTabs [data-baseweb="tab-list"] {
         gap: 2px;
     }
+    
     .stTabs [data-baseweb="tab"] {
         height: 50px;
         padding-left: 20px;
         padding-right: 20px;
-        background-color: #f1f5f9;
+        background-color: var(--tab-bg, #f1f5f9);
         border-radius: 10px 10px 0 0;
+        transition: all 0.2s ease;
     }
+    
     .stTabs [aria-selected="true"] {
-        background-color: #3b82f6;
+        background-color: #0ea5e9;
         color: white;
+        font-weight: 600;
+    }
+    
+    [data-theme="dark"] .stTabs [data-baseweb="tab"] {
+        background-color: #374151;
+        color: #d1d5db;
+    }
+    
+    [data-theme="dark"] .stTabs [aria-selected="true"] {
+        background-color: #06b6d4;
+        color: white;
+    }
+    
+    /* Color-blind friendly alert colors */
+    .stAlert > div {
+        border-radius: 8px;
+    }
+    
+    /* Success: Blue-green instead of pure green */
+    .stSuccess {
+        background-color: #ecfdf5 !important;
+        border-left: 4px solid #059669 !important;
+    }
+    
+    [data-theme="dark"] .stSuccess {
+        background-color: #064e3b !important;
+        color: #d1fae5 !important;
+    }
+    
+    /* Warning: Orange instead of yellow */
+    .stWarning {
+        background-color: #fffbeb !important;
+        border-left: 4px solid #d97706 !important;
+    }
+    
+    [data-theme="dark"] .stWarning {
+        background-color: #451a03 !important;
+        color: #fed7aa !important;
+    }
+    
+    /* Error: Red-orange for better visibility */
+    .stError {
+        background-color: #fef2f2 !important;
+        border-left: 4px solid #dc2626 !important;
+    }
+    
+    [data-theme="dark"] .stError {
+        background-color: #450a0a !important;
+        color: #fecaca !important;
+    }
+    
+    /* Dataframe styling */
+    .stDataFrame {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    /* Button styling */
+    .stButton > button {
+        border-radius: 6px;
+        border: 1px solid #d1d5db;
+        transition: all 0.2s ease;
+    }
+    
+    .stButton > button:hover {
+        border-color: #0ea5e9;
+        color: #0ea5e9;
+    }
+    
+    [data-theme="dark"] .stButton > button {
+        background-color: #374151;
+        border-color: #4b5563;
+        color: #f9fafb;
+    }
+    
+    [data-theme="dark"] .stButton > button:hover {
+        border-color: #06b6d4;
+        color: #06b6d4;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -340,14 +467,14 @@ def overview_tab(filtered_orders, inventory, products, suppliers):
         
         fig_spend = px.bar(supplier_spend, x='supplier_id', y='total_value',
                           title="Top 10 Suppliers by Spend",
-                          color='total_value', color_continuous_scale='Blues')
+                          color='total_value', color_continuous_scale='Viridis')
         fig_spend.update_layout(showlegend=False, height=400)
         st.plotly_chart(fig_spend, use_container_width=True)
     
     with col2:
         # Stock status distribution
         stock_counts = inventory['stock_status'].value_counts()
-        colors = {'Critical': '#ef4444', 'Low': '#f59e0b', 'Normal': '#10b981'}
+        colors = {'Critical': '#dc2626', 'Low': '#d97706', 'Normal': '#059669'}
         
         fig_stock = px.pie(values=stock_counts.values, names=stock_counts.index,
                           title="Stock Status Distribution", hole=0.4,
@@ -410,7 +537,7 @@ def inventory_tab(inventory, products, open_po):
         abc_counts = inventory.merge(products[['product_id', 'abc_class']], on='product_id')['abc_class'].value_counts()
         fig_abc = px.bar(x=abc_counts.index, y=abc_counts.values,
                         title="Inventory by ABC Classification",
-                        color=abc_counts.index, color_discrete_sequence=['#ef4444', '#f59e0b', '#10b981'])
+                        color=abc_counts.index, color_discrete_sequence=['#dc2626', '#d97706', '#059669'])
         st.plotly_chart(fig_abc, use_container_width=True)
     
     with col2:
@@ -437,9 +564,10 @@ def inventory_tab(inventory, products, open_po):
     
     # PO status breakdown
     po_status = open_po['status'].value_counts()
+    po_colors = {'Pending': '#0ea5e9', 'In Transit': '#d97706', 'Delayed': '#dc2626'}
     fig_po = px.bar(x=po_status.index, y=po_status.values,
                    title="Purchase Order Status",
-                   color=po_status.index)
+                   color=po_status.index, color_discrete_map=po_colors)
     st.plotly_chart(fig_po, use_container_width=True)
 
 def suppliers_tab(filtered_orders, suppliers, open_po):
@@ -609,9 +737,9 @@ def forecast_tab(filtered_orders, products):
     # Demand vs Forecast chart
     fig_forecast = go.Figure()
     fig_forecast.add_trace(go.Scatter(x=forecast_data['date'], y=forecast_data['actual'],
-                                     mode='lines', name='Actual Demand', line=dict(color='blue')))
+                                     mode='lines', name='Actual Demand', line=dict(color='#0ea5e9', width=3)))
     fig_forecast.add_trace(go.Scatter(x=forecast_data['date'], y=forecast_data['forecast'],
-                                     mode='lines', name='Forecast', line=dict(color='red', dash='dash')))
+                                     mode='lines', name='Forecast', line=dict(color='#dc2626', dash='dash', width=3)))
     fig_forecast.update_layout(title="Demand vs Forecast", height=400)
     st.plotly_chart(fig_forecast, use_container_width=True)
     
