@@ -267,6 +267,20 @@ def create_sidebar_filters(orders, suppliers, products):
     """Create comprehensive sidebar filters"""
     with st.sidebar:
         st.markdown("## 🎛️ Dashboard Controls")
+        
+        # Theme toggle
+        theme_mode = st.selectbox(
+            "🎨 Display Theme",
+            ["Auto (System)", "Light Mode", "Dark Mode"],
+            help="Choose your preferred display theme"
+        )
+        
+        # Apply theme class to body
+        if theme_mode == "Dark Mode":
+            st.markdown('<script>document.body.setAttribute("data-theme", "dark");</script>', unsafe_allow_html=True)
+        elif theme_mode == "Light Mode":
+            st.markdown('<script>document.body.removeAttribute("data-theme");</script>', unsafe_allow_html=True)
+        
         st.markdown("---")
         
         # Time window selection
@@ -468,7 +482,13 @@ def overview_tab(filtered_orders, inventory, products, suppliers):
         fig_spend = px.bar(supplier_spend, x='supplier_id', y='total_value',
                           title="Top 10 Suppliers by Spend",
                           color='total_value', color_continuous_scale='Viridis')
-        fig_spend.update_layout(showlegend=False, height=400)
+        fig_spend.update_layout(
+            showlegend=False, 
+            height=400,
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(size=12)
+        )
         st.plotly_chart(fig_spend, use_container_width=True)
     
     with col2:
@@ -479,7 +499,12 @@ def overview_tab(filtered_orders, inventory, products, suppliers):
         fig_stock = px.pie(values=stock_counts.values, names=stock_counts.index,
                           title="Stock Status Distribution", hole=0.4,
                           color=stock_counts.index, color_discrete_map=colors)
-        fig_stock.update_layout(height=400)
+        fig_stock.update_layout(
+            height=400,
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(size=12)
+        )
         st.plotly_chart(fig_stock, use_container_width=True)
 
 def inventory_tab(inventory, products, open_po):
@@ -538,6 +563,11 @@ def inventory_tab(inventory, products, open_po):
         fig_abc = px.bar(x=abc_counts.index, y=abc_counts.values,
                         title="Inventory by ABC Classification",
                         color=abc_counts.index, color_discrete_sequence=['#dc2626', '#d97706', '#059669'])
+        fig_abc.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(size=12)
+        )
         st.plotly_chart(fig_abc, use_container_width=True)
     
     with col2:
@@ -547,6 +577,11 @@ def inventory_tab(inventory, products, open_po):
         
         fig_cat = px.pie(category_value, values='inventory_value', names='category',
                         title="Inventory Value by Category")
+        fig_cat.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(size=12)
+        )
         st.plotly_chart(fig_cat, use_container_width=True)
     
     # Open Purchase Orders
@@ -568,6 +603,11 @@ def inventory_tab(inventory, products, open_po):
     fig_po = px.bar(x=po_status.index, y=po_status.values,
                    title="Purchase Order Status",
                    color=po_status.index, color_discrete_map=po_colors)
+    fig_po.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(size=12)
+    )
     st.plotly_chart(fig_po, use_container_width=True)
 
 def suppliers_tab(filtered_orders, suppliers, open_po):
@@ -597,6 +637,11 @@ def suppliers_tab(filtered_orders, suppliers, open_po):
     fig_matrix.add_annotation(text="🎯 Best suppliers: bottom-left quadrant",
                              xref="paper", yref="paper", x=0.02, y=0.98,
                              showarrow=False, font=dict(size=12))
+    fig_matrix.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(size=12)
+    )
     st.plotly_chart(fig_matrix, use_container_width=True)
     
     # Supplier scorecards
@@ -707,7 +752,13 @@ def compliance_tab(filtered_orders):
     fig_compliance = px.bar(compliance_by_category, x='category', 
                            y=['mrp_compliance', 'setup_compliance'],
                            title="Compliance Rates by Category",
-                           barmode='group')
+                           barmode='group',
+                           color_discrete_sequence=['#0ea5e9', '#059669'])
+    fig_compliance.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(size=12)
+    )
     st.plotly_chart(fig_compliance, use_container_width=True)
 
 def forecast_tab(filtered_orders, products):
@@ -740,7 +791,14 @@ def forecast_tab(filtered_orders, products):
                                      mode='lines', name='Actual Demand', line=dict(color='#0ea5e9', width=3)))
     fig_forecast.add_trace(go.Scatter(x=forecast_data['date'], y=forecast_data['forecast'],
                                      mode='lines', name='Forecast', line=dict(color='#dc2626', dash='dash', width=3)))
-    fig_forecast.update_layout(title="Demand vs Forecast", height=400)
+    fig_forecast.update_layout(
+        title="Demand vs Forecast", 
+        height=400,
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(size=12),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    )
     st.plotly_chart(fig_forecast, use_container_width=True)
     
     # Scenario simulation
