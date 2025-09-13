@@ -200,7 +200,7 @@ jupyter notebook notebooks/
 ## Contact
 
 **Project Showcase** - [GitHub Repository](https://github.com/your-username/supply-chain-planning-dashboard)  
-**LinkedIn** - [Your Professional Profile](https://linkedin.com/in/your-profile)  
+**LinkedIn** - [Your Professional Profile](https://linkedin.com/in/arvinddharanidharan/)  
 **Portfolio** - [Your Data Science Portfolio](https://your-portfolio.com)
 
 ---
