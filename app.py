@@ -529,7 +529,7 @@ def inventory_tab(inventory, products, open_po):
     low_items = inventory[inventory['stock_status'] == 'Low']
     
     if len(critical_items) > 0:
-        st.error(f"{display_icon('alert', 20)} ALERT: {len(critical_items)} items are at critical stock levels!", unsafe_allow_html=True)
+        st.error(f"🚨 ALERT: {len(critical_items)} items are at critical stock levels!")
         
         with st.expander("View Critical Items"):
             critical_display = critical_items[['product_id', 'current_stock', 'safety_stock', 'rop']].copy()
@@ -537,7 +537,7 @@ def inventory_tab(inventory, products, open_po):
             st.dataframe(critical_display, use_container_width=True)
     
     if len(low_items) > 0:
-        st.warning(f"{display_icon('warning', 20)} WARNING: {len(low_items)} items are at low stock levels", unsafe_allow_html=True)
+        st.warning(f"⚠️ WARNING: {len(low_items)} items are at low stock levels")
     
     # Show what we should order more of
     st.markdown(f"#### {display_icon('reorder', 24)} Reorder Recommendations", unsafe_allow_html=True)
@@ -564,7 +564,7 @@ def inventory_tab(inventory, products, open_po):
             mime="text/csv"
         )
     else:
-        st.success(f"{display_icon('success', 20)} All items are adequately stocked", unsafe_allow_html=True)
+        st.success(" All items are adequately stocked")
     
     # Show charts to help understand inventory patterns
     col1, col2 = st.columns(2)
@@ -753,7 +753,7 @@ def compliance_tab(filtered_orders):
             mime="text/csv"
         )
     else:
-        st.success(f"{display_icon('success', 20)} All orders are compliant!", unsafe_allow_html=True)
+        st.success("✅ All orders are compliant!")
     
     # Show compliance rates by product category
     compliance_by_category = filtered_orders.groupby('category').agg({
