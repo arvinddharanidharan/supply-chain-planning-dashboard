@@ -64,6 +64,16 @@ st.markdown("""
         color: #f9fafb !important;
     }
     
+    [data-theme="dark"] div[data-testid="metric-container"] {
+        background-color: #374151 !important;
+        border-color: #4b5563 !important;
+        color: #f9fafb !important;
+    }
+    
+    [data-theme="dark"] div[data-testid="metric-container"] * {
+        color: #f9fafb !important;
+    }
+    
     /* Use colors that everyone can see clearly */
     .metric-card {
         background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
