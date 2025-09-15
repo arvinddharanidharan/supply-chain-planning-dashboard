@@ -529,7 +529,7 @@ def inventory_tab(inventory, products, open_po):
     low_items = inventory[inventory['stock_status'] == 'Low']
     
     if len(critical_items) > 0:
-        st.error(f"🚨 ALERT: {len(critical_items)} items are at critical stock levels!")
+        st.error(f"CRITICAL ALERT: {len(critical_items)} items are at critical stock levels!")
         
         with st.expander("View Critical Items"):
             critical_display = critical_items[['product_id', 'current_stock', 'safety_stock', 'rop']].copy()
@@ -537,7 +537,7 @@ def inventory_tab(inventory, products, open_po):
             st.dataframe(critical_display, use_container_width=True)
     
     if len(low_items) > 0:
-        st.warning(f"⚠️ WARNING: {len(low_items)} items are at low stock levels")
+        st.warning(f"WARNING: {len(low_items)} items are at low stock levels")
     
     # Show what we should order more of
     st.markdown(f"#### {display_icon('reorder', 24)} Reorder Recommendations", unsafe_allow_html=True)
@@ -558,13 +558,13 @@ def inventory_tab(inventory, products, open_po):
         # Let users download the reorder list as a file
         csv = reorder_display.to_csv(index=False)
         st.download_button(
-            label="📥 Download Reorder List",
+            label="↓ Download Reorder List",
             data=csv,
             file_name=f"reorder_recommendations_{datetime.now().strftime('%Y%m%d')}.csv",
             mime="text/csv"
         )
     else:
-        st.success(" All items are adequately stocked")
+        st.success("STATUS: All items are adequately stocked")
     
     # Show charts to help understand inventory patterns
     col1, col2 = st.columns(2)
@@ -747,13 +747,13 @@ def compliance_tab(filtered_orders):
         # Let users download the problem orders list
         csv = failure_display.to_csv(index=False)
         st.download_button(
-            label="📥 Download Non-Compliant Orders",
+            label="↓ Download Non-Compliant Orders",
             data=csv,
             file_name=f"non_compliant_orders_{datetime.now().strftime('%Y%m%d')}.csv",
             mime="text/csv"
         )
     else:
-        st.success("✅ All orders are compliant!")
+        st.success("STATUS: All orders are compliant!")
     
     # Show compliance rates by product category
     compliance_by_category = filtered_orders.groupby('category').agg({
@@ -889,11 +889,11 @@ def main():
     
     # Create the main tabs for different sections
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "📊 Overview", 
-        "📦 Inventory", 
-        "🏭 Suppliers", 
-        "✅ Compliance", 
-        "📈 Forecast"
+        "Overview", 
+        "Inventory", 
+        "Suppliers", 
+        "Compliance", 
+        "Forecast"
     ])
     
     with tab1:
