@@ -59,9 +59,9 @@ st.markdown("""
     
     /* Different colors for dark theme */
     [data-theme="dark"] .stMetric {
-        background-color: #374151;
-        border-color: #4b5563;
-        color: #f9fafb;
+        background-color: #374151 !important;
+        border-color: #4b5563 !important;
+        color: #f9fafb !important;
     }
     
     /* Use colors that everyone can see clearly */
@@ -83,8 +83,8 @@ st.markdown("""
     }
     
     [data-theme="dark"] .kpi-container {
-        background-color: #1f2937;
-        border-left-color: #06b6d4;
+        background-color: #1f2937 !important;
+        border-left-color: #06b6d4 !important;
     }
     
     /* Text styling for headings */
@@ -102,9 +102,9 @@ st.markdown("""
         font-weight: 500; 
     }
     
-    [data-theme="dark"] h1 { color: #f9fafb; }
-    [data-theme="dark"] h2 { color: #e5e7eb; }
-    [data-theme="dark"] h3 { color: #d1d5db; }
+    [data-theme="dark"] h1 { color: #f9fafb !important; }
+    [data-theme="dark"] h2 { color: #e5e7eb !important; }
+    [data-theme="dark"] h3 { color: #d1d5db !important; }
     
     /* Style the left sidebar */
     .sidebar .sidebar-content { 
@@ -112,7 +112,7 @@ st.markdown("""
     }
     
     [data-theme="dark"] .sidebar .sidebar-content {
-        background-color: #111827;
+        background-color: #111827 !important;
     }
     
     /* Make tabs look good and easy to use */
@@ -136,13 +136,13 @@ st.markdown("""
     }
     
     [data-theme="dark"] .stTabs [data-baseweb="tab"] {
-        background-color: #374151;
-        color: #d1d5db;
+        background-color: #374151 !important;
+        color: #d1d5db !important;
     }
     
     [data-theme="dark"] .stTabs [aria-selected="true"] {
-        background-color: #06b6d4;
-        color: white;
+        background-color: #06b6d4 !important;
+        color: white !important;
     }
     
     /* Alert colors that work for everyone */
@@ -159,6 +159,7 @@ st.markdown("""
     [data-theme="dark"] .stSuccess {
         background-color: #064e3b !important;
         color: #d1fae5 !important;
+        border-left-color: #10b981 !important;
     }
     
     /* Warning messages in orange */
@@ -170,6 +171,7 @@ st.markdown("""
     [data-theme="dark"] .stWarning {
         background-color: #451a03 !important;
         color: #fed7aa !important;
+        border-left-color: #f59e0b !important;
     }
     
     /* Error messages in red-orange */
@@ -181,6 +183,7 @@ st.markdown("""
     [data-theme="dark"] .stError {
         background-color: #450a0a !important;
         color: #fecaca !important;
+        border-left-color: #ef4444 !important;
     }
     
     /* Style data tables */
@@ -202,14 +205,14 @@ st.markdown("""
     }
     
     [data-theme="dark"] .stButton > button {
-        background-color: #374151;
-        border-color: #4b5563;
-        color: #f9fafb;
+        background-color: #374151 !important;
+        border-color: #4b5563 !important;
+        color: #f9fafb !important;
     }
     
     [data-theme="dark"] .stButton > button:hover {
-        border-color: #06b6d4;
-        color: #06b6d4;
+        border-color: #06b6d4 !important;
+        color: #06b6d4 !important;
     }
     
     /* Frame styling for dark theme */
@@ -911,6 +914,29 @@ def main():
     [data-theme="dark"] div[data-testid="column"] > div {
         background-color: #1f2937 !important;
         border-color: #374151 !important;
+        color: #f9fafb !important;
+    }
+    
+    /* Fix dark mode body background */
+    [data-theme="dark"] .main .block-container {
+        background-color: #111827 !important;
+    }
+    
+    /* Fix dark mode text colors */
+    [data-theme="dark"] .stMarkdown {
+        color: #f9fafb !important;
+    }
+    
+    [data-theme="dark"] .stSelectbox label {
+        color: #f9fafb !important;
+    }
+    
+    [data-theme="dark"] .stMultiSelect label {
+        color: #f9fafb !important;
+    }
+    
+    [data-theme="dark"] .stDateInput label {
+        color: #f9fafb !important;
     }
     </style>
     """, unsafe_allow_html=True)
