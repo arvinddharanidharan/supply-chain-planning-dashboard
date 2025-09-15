@@ -6,6 +6,7 @@ import numpy as np
 from datetime import datetime, timedelta
 import io
 from utils import *
+from email_service import send_critical_alert_email, send_critical_items_report
 
 def display_icon(icon_name, size=20):
     """Display SVG icon inline"""
@@ -571,10 +572,29 @@ def inventory_tab(inventory, products, open_po):
     if len(critical_items) > 0:
         st.error(f"CRITICAL ALERT: {len(critical_items)} items are at critical stock levels!")
         
-        with st.expander("View Critical Items"):
-            critical_display = critical_items[['product_id', 'current_stock', 'safety_stock', 'rop']].copy()
-            critical_display['shortage'] = critical_display['safety_stock'] - critical_display['current_stock']
-            st.dataframe(critical_display, use_container_width=True)
+        # Auto-send alert email (only once per session)
+        if 'critical_alert_sent' not in st.session_state:
+            if send_critical_alert_email(len(critical_items)):
+                st.success("✓ Critical alert email sent to supervisor")
+            st.session_state.critical_alert_sent = True
+        
+        col1, col2 = st.columns([3, 1])
+        
+        with col1:
+            with st.expander("View Critical Items"):
+                critical_display = critical_items[['product_id', 'current_stock', 'safety_stock', 'rop']].copy()
+                critical_display['shortage'] = critical_display['safety_stock'] - critical_display['current_stock']
+                st.dataframe(critical_display, use_container_width=True)
+        
+        with col2:
+            if st.button("📧 Email Report", help="Send critical items report to supervisor"):
+                critical_display = critical_items[['product_id', 'current_stock', 'safety_stock', 'rop']].copy()
+                critical_display['shortage'] = critical_display['safety_stock'] - critical_display['current_stock']
+                
+                if send_critical_items_report(critical_display):
+                    st.success("Report sent!")
+                else:
+                    st.error("Failed to send")
     
     if len(low_items) > 0:
         st.warning(f"WARNING: {len(low_items)} items are at low stock levels")
