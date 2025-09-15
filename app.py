@@ -19,6 +19,17 @@ def display_icon(icon_name, size=20):
     except:
         return f"<span style='font-size:{size}px'>•</span>"
 
+def format_number(value):
+    """Format numbers with K, M, B suffixes"""
+    if abs(value) >= 1e9:
+        return f"{value/1e9:.1f}B"
+    elif abs(value) >= 1e6:
+        return f"{value/1e6:.1f}M"
+    elif abs(value) >= 1e3:
+        return f"{value/1e3:.0f}K"
+    else:
+        return f"{value:,.0f}"
+
 # Set up the main page layout and appearance
 st.set_page_config(
     page_title="Supply Chain Planning Dashboard",
@@ -423,20 +434,20 @@ def overview_tab(filtered_orders, inventory, products, suppliers):
     with col1:
         try:
             copq = filtered_orders['quality_cost'].sum() + filtered_orders['late_penalty'].sum()
-            st.metric("Cost of Poor Quality", f"${copq:,.0f}", 
-                     help="Total cost of quality issues and late delivery penalties")
+            st.metric("Cost of Poor Quality", f"${format_number(copq)}", 
+                     help=f"Total cost of quality issues and late delivery penalties: ${copq:,.0f}")
         except:
             st.metric("Cost of Poor Quality", "N/A")
     
     with col2:
         working_capital = inventory['inventory_value'].sum()
-        st.metric("Working Capital", f"${working_capital:,.0f}",
-                 help="Total value of inventory on hand")
+        st.metric("Working Capital", f"${format_number(working_capital)}",
+                 help=f"Total value of inventory on hand: ${working_capital:,.0f}")
     
     with col3:
         total_spend = filtered_orders['total_value'].sum()
-        st.metric("Procurement Spend", f"${total_spend:,.0f}",
-                 help="Total spending on procurement for selected period")
+        st.metric("Procurement Spend", f"${format_number(total_spend)}",
+                 help=f"Total spending on procurement for selected period: ${total_spend:,.0f}")
     
     with col4:
         try:
@@ -451,8 +462,8 @@ def overview_tab(filtered_orders, inventory, products, suppliers):
     with col5:
         try:
             carrying_cost = inventory['carrying_cost'].sum()
-            st.metric("Annual Carrying Cost", f"${carrying_cost:,.0f}",
-                     help="Annual cost to hold inventory")
+            st.metric("Annual Carrying Cost", f"${format_number(carrying_cost)}",
+                     help=f"Annual cost to hold inventory: ${carrying_cost:,.0f}")
         except:
             st.metric("Annual Carrying Cost", "N/A")
     
@@ -609,7 +620,8 @@ def inventory_tab(inventory, products, open_po):
     with col1:
         st.metric("Total Open POs", len(open_po), help="Number of purchase orders currently open and pending delivery")
     with col2:
-        st.metric("Total PO Value", f"${open_po['total_value'].sum():,.0f}", help="Total monetary value of all open purchase orders")
+        po_value = open_po['total_value'].sum()
+        st.metric("Total PO Value", f"${format_number(po_value)}", help=f"Total monetary value of all open purchase orders: ${po_value:,.0f}")
     with col3:
         delayed_pos = len(open_po[open_po['status'] == 'Delayed'])
         st.metric("Delayed POs", delayed_pos, help="Number of purchase orders that are delayed beyond expected delivery date")
@@ -886,21 +898,36 @@ def main():
     orders, inventory, products, suppliers, open_po, open_co = load_data()
     
     # Create main layout with framed sections
+    st.markdown("""
+    <style>
+    .dashboard-container {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+    }
+    [data-theme="dark"] .dashboard-container {
+        background-color: #1f2937 !important;
+        border-color: #374151 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
     col1, col2 = st.columns([1, 4])
     
     with col1:
-        st.markdown("""
-        <div class="dashboard-frame" style="background: white; padding: 1.5rem; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1rem;">
-        """, unsafe_allow_html=True)
-        st.markdown("### Dashboard Controls")
-        filters = create_dashboard_controls(orders, suppliers, products)
-        st.markdown("</div>", unsafe_allow_html=True)
+        with st.container():
+            st.markdown('<div class="dashboard-container">', unsafe_allow_html=True)
+            st.markdown("### Dashboard Controls")
+            filters = create_dashboard_controls(orders, suppliers, products)
+            st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
-        st.markdown("""
-        <div class="dashboard-frame" style="background: white; padding: 1.5rem; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1rem;">
-        """, unsafe_allow_html=True)
-        filtered_orders = filter_data(orders, products, filters)
+        with st.container():
+            st.markdown('<div class="dashboard-container">', unsafe_allow_html=True)
+            filtered_orders = filter_data(orders, products, filters)
     
         # Tell the user what data we're showing
         if len(filtered_orders) == 0:
@@ -932,8 +959,8 @@ def main():
         
         with tab5:
             forecast_tab(filtered_orders, products)
-        
-        st.markdown("</div>", unsafe_allow_html=True)
+            
+            st.markdown('</div>', unsafe_allow_html=True)
     
     # Professional footer
     st.markdown("""
