@@ -8,7 +8,7 @@ import sys
 import os
 
 def check_requirements():
-    """Check if required packages are installed"""
+    """Make sure all the needed Python packages are installed"""
     required_packages = ['pandas', 'numpy', 'matplotlib', 'seaborn', 'plotly', 'streamlit', 'statsmodels']
     missing = []
     
@@ -27,7 +27,7 @@ def check_requirements():
     return True
 
 def check_data():
-    """Check if data files exist"""
+    """Make sure we have the data files we need for the dashboard"""
     data_files = ['data/orders.csv', 'data/inventory.csv', 'data/products.csv', 'data/suppliers.csv']
     missing_files = [f for f in data_files if not os.path.exists(f)]
     

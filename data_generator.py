@@ -3,10 +3,10 @@ import numpy as np
 from datetime import datetime, timedelta
 
 def generate_supply_chain_data(n_orders=5000, n_products=100, n_suppliers=20):
-    """Generate comprehensive supply chain dataset"""
+    """Create realistic sample data for the supply chain dashboard"""
     np.random.seed(42)
     
-    # Product master data
+    # Create a list of products with their basic information
     products = []
     for i in range(n_products):
         unit_cost = np.random.uniform(5, 500)
@@ -16,11 +16,11 @@ def generate_supply_chain_data(n_orders=5000, n_products=100, n_suppliers=20):
             'category': np.random.choice(['Raw Material', 'Component', 'Finished Good']),
             'unit_cost': unit_cost,
             'abc_class': np.random.choice(['A', 'B', 'C'], p=[0.2, 0.3, 0.5]),
-            'carrying_cost_rate': np.random.uniform(0.15, 0.35),  # Annual carrying cost %
-            'scrap_cost': unit_cost * np.random.uniform(0.8, 1.2)  # Cost to scrap defective units
+            'carrying_cost_rate': np.random.uniform(0.15, 0.35),  # How much it costs to store this item per year
+            'scrap_cost': unit_cost * np.random.uniform(0.8, 1.2)  # Cost to throw away broken items
         })
     
-    # Supplier master data
+    # Create a list of suppliers with their performance info
     suppliers = []
     for i in range(n_suppliers):
         suppliers.append({
@@ -29,11 +29,11 @@ def generate_supply_chain_data(n_orders=5000, n_products=100, n_suppliers=20):
             'country': np.random.choice(['USA', 'Germany', 'China', 'India', 'Mexico']),
             'quality_rating': np.random.uniform(85, 99),
             'lead_time_target': np.random.randint(5, 30),
-            'payment_terms': np.random.choice([30, 45, 60, 90]),  # Days
-            'discount_rate': np.random.uniform(0, 0.05)  # Early payment discount
+            'payment_terms': np.random.choice([30, 45, 60, 90]),  # How many days we have to pay them
+            'discount_rate': np.random.uniform(0, 0.05)  # Discount we get for paying early
         })
     
-    # Generate orders data
+    # Create individual purchase orders with realistic details
     orders_data = []
     start_date = datetime.now() - timedelta(days=365)
     
@@ -44,15 +44,15 @@ def generate_supply_chain_data(n_orders=5000, n_products=100, n_suppliers=20):
         order_date = start_date + timedelta(days=np.random.randint(0, 365))
         planned_delivery = order_date + timedelta(days=supplier['lead_time_target'])
         
-        # Simulate actual delivery with some variance (more realistic)
-        lead_time_variance = np.random.normal(0, 1.5)  # Reduced variance
+        # Sometimes deliveries are late, sometimes on time
+        lead_time_variance = np.random.normal(0, 1.5)  # Add some randomness to delivery times
         actual_delivery = planned_delivery + timedelta(days=max(0, int(lead_time_variance)))
         
-        quantity = np.random.randint(50, 500)  # More realistic order quantities
-        unit_price = product['unit_cost'] * np.random.uniform(0.95, 1.05)  # Tighter price variance
+        quantity = np.random.randint(50, 500)  # How many items we ordered
+        unit_price = product['unit_cost'] * np.random.uniform(0.95, 1.05)  # Price varies slightly from standard cost
         total_value = quantity * unit_price
         
-        # Quality metrics (more realistic defect rates)
+        # Better suppliers have fewer defective items
         if supplier['quality_rating'] > 95:
             defect_rate = np.random.uniform(0, 0.5)
         elif supplier['quality_rating'] > 90:
@@ -60,14 +60,14 @@ def generate_supply_chain_data(n_orders=5000, n_products=100, n_suppliers=20):
         else:
             defect_rate = np.random.uniform(0, 4)
         
-        # Process compliance (higher compliance rates)
-        mrp_compliance = np.random.choice(['Compliant', 'Non-Compliant'], p=[0.92, 0.08])
-        setup_compliance = np.random.choice(['Compliant', 'Non-Compliant'], p=[0.95, 0.05])
+        # Most of the time we follow proper processes
+        mrp_compliance = np.random.choice(['Compliant', 'Non-Compliant'], p=[0.92, 0.08])  # Did we follow planning rules?
+        setup_compliance = np.random.choice(['Compliant', 'Non-Compliant'], p=[0.95, 0.05])  # Did we set up production correctly?
         
-        # Financial calculations
-        defective_units = quantity * (defect_rate / 100)
-        quality_cost = defective_units * product['scrap_cost']
-        late_delivery_penalty = total_value * 0.02 if actual_delivery > planned_delivery else 0
+        # Calculate the costs of problems
+        defective_units = quantity * (defect_rate / 100)  # How many items were broken
+        quality_cost = defective_units * product['scrap_cost']  # Cost of throwing away broken items
+        late_delivery_penalty = total_value * 0.02 if actual_delivery > planned_delivery else 0  # Penalty for late delivery
         
         orders_data.append({
             'order_id': f'ORD{i+1:06d}',
@@ -91,21 +91,21 @@ def generate_supply_chain_data(n_orders=5000, n_products=100, n_suppliers=20):
             'defective_units': defective_units
         })
     
-    # Generate inventory data
+    # Create current stock levels for each product
     inventory_data = []
     for product in products:
-        current_stock = np.random.randint(200, 3000)  # Higher stock levels for realistic turnover
-        safety_stock = np.random.randint(50, 300)  # More realistic safety stock
-        eoq = np.random.randint(200, 800)  # More realistic EOQ
+        current_stock = np.random.randint(200, 3000)  # How many we have in stock right now
+        safety_stock = np.random.randint(50, 300)  # Minimum amount we want to keep in stock
+        eoq = np.random.randint(200, 800)  # Optimal order quantity to minimize costs
         
-        # Calculate reorder point (more realistic)
-        avg_demand = np.random.uniform(20, 80)
-        avg_lead_time = np.random.randint(7, 21)
-        rop = avg_demand * avg_lead_time + safety_stock
+        # Figure out when we should reorder
+        avg_demand = np.random.uniform(20, 80)  # How many we typically use per day
+        avg_lead_time = np.random.randint(7, 21)  # How long it takes to get new stock
+        rop = avg_demand * avg_lead_time + safety_stock  # When to reorder
         
-        # Financial calculations
-        inventory_value = current_stock * product['unit_cost']
-        carrying_cost = inventory_value * product['carrying_cost_rate']
+        # Calculate the value and cost of holding inventory
+        inventory_value = current_stock * product['unit_cost']  # Total value of stock on hand
+        carrying_cost = inventory_value * product['carrying_cost_rate']  # Annual cost to store this inventory
         
         inventory_data.append({
             'product_id': product['product_id'],
@@ -120,7 +120,7 @@ def generate_supply_chain_data(n_orders=5000, n_products=100, n_suppliers=20):
             'carrying_cost': carrying_cost
         })
     
-    # Convert to DataFrames
+    # Turn our data into tables that pandas can work with
     orders_df = pd.DataFrame(orders_data)
     inventory_df = pd.DataFrame(inventory_data)
     products_df = pd.DataFrame(products)
@@ -131,7 +131,7 @@ def generate_supply_chain_data(n_orders=5000, n_products=100, n_suppliers=20):
 if __name__ == "__main__":
     orders, inventory, products, suppliers = generate_supply_chain_data()
     
-    # Save datasets
+    # Save all the data to CSV files
     orders.to_csv('data/orders.csv', index=False)
     inventory.to_csv('data/inventory.csv', index=False)
     products.to_csv('data/products.csv', index=False)

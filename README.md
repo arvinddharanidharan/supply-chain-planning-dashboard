@@ -201,8 +201,5 @@ jupyter notebook notebooks/
 
 **Project Showcase** - [GitHub Repository](https://github.com/arvinddharanidharan/supply-chain-planning-dashboard)  
 **LinkedIn** - [Your Professional Profile](https://linkedin.com/in/arvinddharanidharan/)  
-**Portfolio** - [Your Data Science Portfolio](https://your-portfolio.com)
 
----
-
-*This project demonstrates enterprise-level supply chain analytics capabilities, combining process monitoring, predictive analytics, and optimization strategies in a professional dashboard interface.*
+**This project demonstrates enterprise-level supply chain analytics capabilities, combining process monitoring, predictive analytics, and optimization strategies in a professional dashboard interface.**

@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 import io
 from utils import *
 
-# Page configuration
+# Set up the main page layout and appearance
 st.set_page_config(
     page_title="Supply Chain Planning Dashboard",
     page_icon="📊",
@@ -15,16 +15,16 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Professional CSS styling with dark/light mode and color-blind support
+# Custom styling to make the dashboard look professional and accessible
 st.markdown("""
 <style>
-    /* Dark/Light mode compatible base styles */
+    /* Basic styles that work in both light and dark themes */
     .main .block-container {
         padding-top: 1rem;
         padding-bottom: 2rem;
     }
     
-    /* Metric cards with theme adaptation */
+    /* Style the metric display boxes */
     .stMetric {
         background-color: var(--background-color, #ffffff);
         padding: 1rem;
@@ -34,14 +34,14 @@ st.markdown("""
         transition: all 0.3s ease;
     }
     
-    /* Dark mode metric cards */
+    /* Different colors for dark theme */
     [data-theme="dark"] .stMetric {
         background-color: #374151;
         border-color: #4b5563;
         color: #f9fafb;
     }
     
-    /* Color-blind friendly metric highlights */
+    /* Use colors that everyone can see clearly */
     .metric-card {
         background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
         padding: 1.5rem;
@@ -50,7 +50,7 @@ st.markdown("""
         margin: 0.5rem 0;
     }
     
-    /* KPI containers with theme support */
+    /* Style the main KPI display areas */
     .kpi-container {
         background-color: var(--secondary-bg, #f8fafc);
         padding: 1.5rem;
@@ -64,7 +64,7 @@ st.markdown("""
         border-left-color: #06b6d4;
     }
     
-    /* Typography with theme adaptation */
+    /* Text styling for headings */
     h1 { 
         color: var(--text-primary, #1e293b); 
         font-weight: 700; 
@@ -83,7 +83,7 @@ st.markdown("""
     [data-theme="dark"] h2 { color: #e5e7eb; }
     [data-theme="dark"] h3 { color: #d1d5db; }
     
-    /* Sidebar styling */
+    /* Style the left sidebar */
     .sidebar .sidebar-content { 
         background-color: var(--sidebar-bg, #f1f5f9); 
     }
@@ -92,7 +92,7 @@ st.markdown("""
         background-color: #111827;
     }
     
-    /* Tab styling with accessibility */
+    /* Make tabs look good and easy to use */
     .stTabs [data-baseweb="tab-list"] {
         gap: 2px;
     }
@@ -122,12 +122,12 @@ st.markdown("""
         color: white;
     }
     
-    /* Color-blind friendly alert colors */
+    /* Alert colors that work for everyone */
     .stAlert > div {
         border-radius: 8px;
     }
     
-    /* Success: Blue-green instead of pure green */
+    /* Success messages in blue-green */
     .stSuccess {
         background-color: #ecfdf5 !important;
         border-left: 4px solid #059669 !important;
@@ -138,7 +138,7 @@ st.markdown("""
         color: #d1fae5 !important;
     }
     
-    /* Warning: Orange instead of yellow */
+    /* Warning messages in orange */
     .stWarning {
         background-color: #fffbeb !important;
         border-left: 4px solid #d97706 !important;
@@ -149,7 +149,7 @@ st.markdown("""
         color: #fed7aa !important;
     }
     
-    /* Error: Red-orange for better visibility */
+    /* Error messages in red-orange */
     .stError {
         background-color: #fef2f2 !important;
         border-left: 4px solid #dc2626 !important;
@@ -160,13 +160,13 @@ st.markdown("""
         color: #fecaca !important;
     }
     
-    /* Dataframe styling */
+    /* Style data tables */
     .stDataFrame {
         border-radius: 8px;
         overflow: hidden;
     }
     
-    /* Button styling */
+    /* Style buttons */
     .stButton > button {
         border-radius: 6px;
         border: 1px solid #d1d5db;
@@ -199,7 +199,7 @@ def load_data():
         products = pd.read_csv('data/products.csv')
         suppliers = pd.read_csv('data/suppliers.csv')
         
-        # Generate open orders data
+        # Create sample data for current open orders
         open_po = generate_open_purchase_orders(orders, suppliers)
         open_co = generate_open_customer_orders(products)
         
@@ -209,7 +209,7 @@ def load_data():
         st.stop()
 
 def generate_open_purchase_orders(orders, suppliers):
-    """Generate realistic open purchase orders"""
+    """Create sample purchase orders that are still waiting for delivery"""
     np.random.seed(42)
     n_open = 150
     
@@ -236,7 +236,7 @@ def generate_open_purchase_orders(orders, suppliers):
     return df
 
 def generate_open_customer_orders(products):
-    """Generate realistic open customer orders"""
+    """Create sample customer orders that haven't been shipped yet"""
     np.random.seed(43)
     n_open = 200
     
@@ -264,18 +264,18 @@ def generate_open_customer_orders(products):
     return df
 
 def create_sidebar_filters(orders, suppliers, products):
-    """Create comprehensive sidebar filters"""
+    """Build the filter controls in the left sidebar"""
     with st.sidebar:
         st.markdown("## 🎛️ Dashboard Controls")
         
-        # Theme toggle
+# Let users switch between light and dark themes
         theme_mode = st.selectbox(
             "🎨 Display Theme",
             ["Auto (System)", "Light Mode", "Dark Mode"],
             help="Choose your preferred display theme"
         )
         
-        # Apply theme class to body
+        # Actually apply the theme the user selected
         if theme_mode == "Dark Mode":
             st.markdown('<script>document.body.setAttribute("data-theme", "dark");</script>', unsafe_allow_html=True)
         elif theme_mode == "Light Mode":
@@ -283,14 +283,14 @@ def create_sidebar_filters(orders, suppliers, products):
         
         st.markdown("---")
         
-        # Time window selection
+        # Let users pick how far back to look at data
         time_window = st.selectbox(
             "📅 Time Window",
             ["Last 30 Days", "Last 90 Days", "Last 6 Months", "Last Year", "All Time"],
             index=0
         )
         
-        # Date range based on time window
+        # Calculate the actual start date based on what they picked
         end_date = orders['order_date'].max().date()
         if time_window == "Last 30 Days":
             start_date = end_date - timedelta(days=30)
@@ -312,7 +312,7 @@ def create_sidebar_filters(orders, suppliers, products):
         
         st.markdown("---")
         
-        # Supplier selection
+        # Let users filter by specific suppliers
         supplier_options = ['All Suppliers'] + sorted(orders['supplier_id'].unique().tolist())
         selected_suppliers = st.multiselect(
             "🏭 Suppliers",
@@ -320,7 +320,7 @@ def create_sidebar_filters(orders, suppliers, products):
             default=['All Suppliers']
         )
         
-        # Product category (ABC) filter
+        # Filter by product importance (A=most important, C=least)
         abc_options = ['All Classes'] + sorted(products['abc_class'].unique().tolist())
         selected_abc = st.multiselect(
             "📊 ABC Classification",
@@ -328,7 +328,7 @@ def create_sidebar_filters(orders, suppliers, products):
             default=['All Classes']
         )
         
-        # Product categories
+        # Filter by type of product
         category_options = ['All Categories'] + sorted(orders['category'].unique().tolist())
         selected_categories = st.multiselect(
             "🏷️ Product Categories",
@@ -336,7 +336,7 @@ def create_sidebar_filters(orders, suppliers, products):
             default=['All Categories']
         )
         
-        # Compliance filters
+        # Filter by how well processes were followed
         st.markdown("---")
         compliance_filter = st.selectbox(
             "✅ Process Compliance",
@@ -352,29 +352,29 @@ def create_sidebar_filters(orders, suppliers, products):
         }
 
 def filter_data(orders, products, filters):
-    """Apply filters to data"""
+    """Take the user's filter choices and apply them to the data"""
     filtered_orders = orders.copy()
     
-    # Date filter
+    # Only show orders from the selected date range
     if len(filters['date_range']) == 2:
         filtered_orders = filtered_orders[
             (filtered_orders['order_date'].dt.date >= filters['date_range'][0]) &
             (filtered_orders['order_date'].dt.date <= filters['date_range'][1])
         ]
     
-    # Supplier filter
+    # Only show orders from selected suppliers
     if 'All Suppliers' not in filters['suppliers'] and filters['suppliers']:
         filtered_orders = filtered_orders[filtered_orders['supplier_id'].isin(filters['suppliers'])]
     
-    # Category filter
+    # Only show orders for selected product categories
     if 'All Categories' not in filters['categories'] and filters['categories']:
         filtered_orders = filtered_orders[filtered_orders['category'].isin(filters['categories'])]
     
-    # ABC filter
+    # Only show orders for selected ABC classes
     if 'All Classes' not in filters['abc_classes'] and filters['abc_classes']:
         filtered_orders = filtered_orders[filtered_orders['abc_class'].isin(filters['abc_classes'])]
     
-    # Compliance filter
+    # Filter based on how well processes were followed
     if filters['compliance'] == "Compliant Only":
         filtered_orders = filtered_orders[
             (filtered_orders['mrp_compliance'] == 'Compliant') & 
@@ -396,11 +396,11 @@ def filter_data(orders, products, filters):
     return filtered_orders
 
 def overview_tab(filtered_orders, inventory, products, suppliers):
-    """Overview dashboard tab"""
+    """Show the main dashboard with key metrics and charts"""
     st.markdown("### 📊 Executive Summary")
     st.caption("Key performance indicators and financial metrics overview")
     
-    # Key metrics row
+    # Show the most important financial numbers
     col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
@@ -441,7 +441,7 @@ def overview_tab(filtered_orders, inventory, products, suppliers):
     
     st.markdown("---")
     
-    # Operational metrics
+    # Show key performance indicators
     col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
@@ -470,12 +470,12 @@ def overview_tab(filtered_orders, inventory, products, suppliers):
         st.metric("Critical Stock Items", critical_stock,
                  help="Items below safety stock requiring attention")
     
-    # Charts section
+    # Add some visual charts to make the data easier to understand
     st.markdown("---")
     col1, col2 = st.columns(2)
     
     with col1:
-        # Top suppliers by spend
+        # Show which suppliers we spend the most money with
         supplier_spend = filtered_orders.groupby('supplier_id')['total_value'].sum().reset_index()
         supplier_spend = supplier_spend.sort_values('total_value', ascending=False).head(10)
         
@@ -492,7 +492,7 @@ def overview_tab(filtered_orders, inventory, products, suppliers):
         st.plotly_chart(fig_spend, use_container_width=True)
     
     with col2:
-        # Stock status distribution
+        # Show how many items are at different stock levels
         stock_counts = inventory['stock_status'].value_counts()
         colors = {'Critical': '#dc2626', 'Low': '#d97706', 'Normal': '#059669'}
         
@@ -508,11 +508,11 @@ def overview_tab(filtered_orders, inventory, products, suppliers):
         st.plotly_chart(fig_stock, use_container_width=True)
 
 def inventory_tab(inventory, products, open_po):
-    """Inventory management tab"""
+    """Show inventory levels and what needs to be reordered"""
     st.markdown("### 📦 Inventory Management")
     st.caption("Stock levels, reorder recommendations, and inventory optimization")
     
-    # Inventory alerts
+    # Warn about items that are running low
     critical_items = inventory[inventory['stock_status'] == 'Critical']
     low_items = inventory[inventory['stock_status'] == 'Low']
     
@@ -527,7 +527,7 @@ def inventory_tab(inventory, products, open_po):
     if len(low_items) > 0:
         st.warning(f"⚠️ {len(low_items)} items are at low stock levels")
     
-    # Reorder recommendations
+    # Show what we should order more of
     st.markdown("#### 🔄 Reorder Recommendations")
     st.caption("Items requiring immediate attention based on current stock levels and reorder points")
     
@@ -543,7 +543,7 @@ def inventory_tab(inventory, products, open_po):
         
         st.dataframe(reorder_display.sort_values('estimated_cost', ascending=False), use_container_width=True)
         
-        # Export reorder list
+        # Let users download the reorder list as a file
         csv = reorder_display.to_csv(index=False)
         st.download_button(
             label="📥 Download Reorder List",
@@ -554,11 +554,11 @@ def inventory_tab(inventory, products, open_po):
     else:
         st.success("✅ All items are adequately stocked")
     
-    # Inventory analysis charts
+    # Show charts to help understand inventory patterns
     col1, col2 = st.columns(2)
     
     with col1:
-        # ABC analysis
+        # Show breakdown by product importance
         abc_counts = inventory.merge(products[['product_id', 'abc_class']], on='product_id')['abc_class'].value_counts()
         fig_abc = px.bar(x=abc_counts.index, y=abc_counts.values,
                         title="Inventory by ABC Classification",
@@ -571,7 +571,7 @@ def inventory_tab(inventory, products, open_po):
         st.plotly_chart(fig_abc, use_container_width=True)
     
     with col2:
-        # Inventory value by category
+        # Show how much money is tied up in each product type
         inv_category = inventory.merge(products[['product_id', 'category']], on='product_id')
         category_value = inv_category.groupby('category')['inventory_value'].sum().reset_index()
         
@@ -584,7 +584,7 @@ def inventory_tab(inventory, products, open_po):
         )
         st.plotly_chart(fig_cat, use_container_width=True)
     
-    # Open Purchase Orders
+    # Show orders we've placed but haven't received yet
     st.markdown("#### 📋 Open Purchase Orders")
     st.caption("Current purchase orders pending delivery and their status")
     
@@ -597,7 +597,7 @@ def inventory_tab(inventory, products, open_po):
         delayed_pos = len(open_po[open_po['status'] == 'Delayed'])
         st.metric("Delayed POs", delayed_pos, help="Number of purchase orders that are delayed beyond expected delivery date")
     
-    # PO status breakdown
+    # Show how many orders are in each status
     po_status = open_po['status'].value_counts()
     po_colors = {'Pending': '#0ea5e9', 'In Transit': '#d97706', 'Delayed': '#dc2626'}
     fig_po = px.bar(x=po_status.index, y=po_status.values,
@@ -611,11 +611,11 @@ def inventory_tab(inventory, products, open_po):
     st.plotly_chart(fig_po, use_container_width=True)
 
 def suppliers_tab(filtered_orders, suppliers, open_po):
-    """Suppliers performance tab"""
+    """Show how well our suppliers are performing"""
     st.markdown("### 🏭 Supplier Performance")
     st.caption("Supplier scorecards, performance matrix, and relationship management")
     
-    # Supplier performance matrix
+    # Calculate key performance metrics for each supplier
     supplier_perf = filtered_orders.groupby('supplier_id').agg({
         'defect_rate': 'mean',
         'lead_time': 'mean',
@@ -625,7 +625,7 @@ def suppliers_tab(filtered_orders, suppliers, open_po):
     }).reset_index()
     supplier_perf.columns = ['supplier_id', 'avg_defect_rate', 'avg_lead_time', 'total_spend', 'otd_rate']
     
-    # Performance matrix chart
+    # Create a chart showing supplier performance
     fig_matrix = px.scatter(supplier_perf, x='avg_lead_time', y='avg_defect_rate',
                            size='total_spend', color='otd_rate',
                            hover_data=['supplier_id'],
@@ -644,11 +644,11 @@ def suppliers_tab(filtered_orders, suppliers, open_po):
     )
     st.plotly_chart(fig_matrix, use_container_width=True)
     
-    # Supplier scorecards
+    # Rank suppliers by overall performance
     st.markdown("#### 📊 Supplier Scorecards")
     st.caption("Performance rankings based on delivery, quality, and lead time metrics")
     
-    # Add supplier details
+    # Combine performance data with supplier information
     supplier_details = supplier_perf.merge(suppliers, on='supplier_id')
     supplier_details['performance_score'] = (
         (100 - supplier_details['avg_defect_rate']) * 0.3 +
@@ -656,7 +656,7 @@ def suppliers_tab(filtered_orders, suppliers, open_po):
         (100 - (supplier_details['avg_lead_time'] / supplier_details['avg_lead_time'].max() * 100)) * 0.3
     )
     
-    # Top and bottom performers
+    # Show the best and worst performing suppliers
     col1, col2 = st.columns(2)
     
     with col1:
@@ -674,11 +674,11 @@ def suppliers_tab(filtered_orders, suppliers, open_po):
         st.dataframe(bottom_suppliers, use_container_width=True)
 
 def compliance_tab(filtered_orders):
-    """Process compliance tab"""
+    """Show how well we're following our processes"""
     st.markdown("### ✅ Process Compliance Analysis")
     st.caption("Happy path tracking, compliance rates, and process optimization")
     
-    # Happy path analysis
+    # Find orders that went perfectly (no problems at all)
     happy_path_orders = filtered_orders[
         (filtered_orders['mrp_compliance'] == 'Compliant') & 
         (filtered_orders['setup_compliance'] == 'Compliant') &
@@ -707,7 +707,7 @@ def compliance_tab(filtered_orders):
         quality_rate = quality_orders / len(filtered_orders) * 100 if len(filtered_orders) > 0 else 0
         st.metric("Quality Orders", f"{quality_rate:.1f}%", help="Percentage of orders with defect rate below 1% threshold")
     
-    # Failed orders drill-down
+    # Look at orders that had problems
     st.markdown("#### 🔍 Non-Compliant Orders Analysis")
     st.caption("Detailed breakdown of orders that failed to follow optimal processes")
     
@@ -719,7 +719,7 @@ def compliance_tab(filtered_orders):
     ].copy()
     
     if len(failed_orders) > 0:
-        # Add failure reasons
+        # Figure out what went wrong with each order
         failed_orders['failure_reasons'] = failed_orders.apply(lambda row: 
             ', '.join([
                 'MRP Non-Compliant' if row['mrp_compliance'] == 'Non-Compliant' else '',
@@ -732,7 +732,7 @@ def compliance_tab(filtered_orders):
         failure_display = failed_orders[['order_id', 'supplier_id', 'category', 'total_value', 'failure_reasons']].copy()
         st.dataframe(failure_display, use_container_width=True)
         
-        # Export failed orders
+        # Let users download the problem orders list
         csv = failure_display.to_csv(index=False)
         st.download_button(
             label="📥 Download Non-Compliant Orders",
@@ -743,7 +743,7 @@ def compliance_tab(filtered_orders):
     else:
         st.success("✅ All orders are compliant!")
     
-    # Compliance trends
+    # Show compliance rates by product category
     compliance_by_category = filtered_orders.groupby('category').agg({
         'mrp_compliance': lambda x: (x == 'Compliant').mean() * 100,
         'setup_compliance': lambda x: (x == 'Compliant').mean() * 100
@@ -762,14 +762,14 @@ def compliance_tab(filtered_orders):
     st.plotly_chart(fig_compliance, use_container_width=True)
 
 def forecast_tab(filtered_orders, products):
-    """Forecasting and scenario analysis tab"""
+    """Show demand forecasting and what-if scenarios"""
     st.markdown("### 📈 Demand Forecasting & Scenarios")
     st.caption("Forecast accuracy analysis and scenario planning simulation")
     
-    # Generate forecast data
+    # Create sample forecast vs actual demand data
     forecast_data = generate_forecast_data(filtered_orders)
     
-    # Forecast accuracy
+    # Show how accurate our forecasts are
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -785,7 +785,7 @@ def forecast_tab(filtered_orders, products):
         bias = (forecast_data['forecast'] - forecast_data['actual']).mean()
         st.metric("Forecast Bias", f"{bias:+.0f} units", help="Average difference between forecast and actual demand. Positive = over-forecasting, Negative = under-forecasting")
     
-    # Demand vs Forecast chart
+    # Chart showing predicted vs actual demand over time
     fig_forecast = go.Figure()
     fig_forecast.add_trace(go.Scatter(x=forecast_data['date'], y=forecast_data['actual'],
                                      mode='lines', name='Actual Demand', line=dict(color='#0ea5e9', width=3)))
@@ -801,7 +801,7 @@ def forecast_tab(filtered_orders, products):
     )
     st.plotly_chart(fig_forecast, use_container_width=True)
     
-    # Scenario simulation
+    # Let users test what happens if things change
     st.markdown("#### 🎯 Scenario Simulation")
     st.caption("Test the impact of changes in lead times and demand on key performance metrics")
     
@@ -826,26 +826,26 @@ def forecast_tab(filtered_orders, products):
                 st.metric("Cost Impact", f"${scenario_results['cost_change']:+,.0f}", help="Expected change in total costs including quality and penalty costs")
 
 def generate_forecast_data(orders):
-    """Generate realistic forecast vs actual data"""
+    """Create sample data comparing forecasts to what actually happened"""
     np.random.seed(42)
     
-    # Group orders by date and sum quantities
+    # Add up all orders for each day
     daily_demand = orders.groupby(orders['order_date'].dt.date)['quantity'].sum().reset_index()
     daily_demand.columns = ['date', 'actual']
     
-    # Generate forecast with some error
+    # Create forecasts that are close but not perfect
     daily_demand['forecast'] = daily_demand['actual'] * np.random.uniform(0.85, 1.15, len(daily_demand))
     
     return daily_demand
 
 def run_scenario_simulation(orders, lead_time_change, demand_change):
-    """Run scenario simulation"""
-    # Simulate impacts
+    """Calculate what happens if lead times or demand changes"""
+    # Calculate current baseline metrics
     base_otd = calculate_otd_percentage(orders)
     base_inventory = orders['total_value'].sum() * 0.3  # Assume 30% inventory ratio
     base_cost = orders['quality_cost'].sum() + orders['late_penalty'].sum()
     
-    # Calculate scenario impacts
+    # Estimate how changes would affect performance
     otd_impact = -lead_time_change * 0.5  # Lead time increase reduces OTD
     inventory_impact = demand_change * base_inventory / 100
     cost_impact = abs(lead_time_change) * base_cost / 100
@@ -857,25 +857,25 @@ def run_scenario_simulation(orders, lead_time_change, demand_change):
     }
 
 def main():
-    # Header
+    # Show the main title and description
     st.title("🏭 Supply Chain Planning Dashboard")
     st.markdown("**Enterprise-level supply chain analytics and optimization platform**")
     
-    # Load data
+    # Get all the data we need for the dashboard
     orders, inventory, products, suppliers, open_po, open_co = load_data()
     
-    # Sidebar filters
+    # Set up the filter controls and apply them
     filters = create_sidebar_filters(orders, suppliers, products)
     filtered_orders = filter_data(orders, products, filters)
     
-    # Data summary
+    # Tell the user what data we're showing
     if len(filtered_orders) == 0:
         st.warning("⚠️ No data matches the selected filters. Showing all data.")
         filtered_orders = orders
     else:
         st.success(f"✅ Analyzing {len(filtered_orders):,} orders from {len(filtered_orders['supplier_id'].unique())} suppliers")
     
-    # Main navigation tabs
+    # Create the main tabs for different sections
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "📊 Overview", 
         "📦 Inventory", 
@@ -899,7 +899,7 @@ def main():
     with tab5:
         forecast_tab(filtered_orders, products)
     
-    # Footer
+    # Add a footer at the bottom
     st.markdown("---")
     st.markdown("*Supply Chain Planning Dashboard - Professional Analytics Platform*")
 
