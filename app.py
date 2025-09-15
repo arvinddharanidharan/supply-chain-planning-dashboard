@@ -7,6 +7,18 @@ from datetime import datetime, timedelta
 import io
 from utils import *
 
+def display_icon(icon_name, size=20):
+    """Display SVG icon inline"""
+    try:
+        with open(f"assets/icons/{icon_name}.svg", "r") as f:
+            svg_content = f.read()
+        # Modify SVG size
+        svg_content = svg_content.replace('width="24"', f'width="{size}"')
+        svg_content = svg_content.replace('height="24"', f'height="{size}"')
+        return svg_content
+    except:
+        return f"<span style='font-size:{size}px'>•</span>"
+
 # Set up the main page layout and appearance
 st.set_page_config(
     page_title="Supply Chain Planning Dashboard",
@@ -266,7 +278,7 @@ def generate_open_customer_orders(products):
 def create_sidebar_filters(orders, suppliers, products):
     """Build the filter controls in the left sidebar"""
     with st.sidebar:
-        st.markdown("## Dashboard Controls")
+        st.markdown(f"## {display_icon('controls', 24)} Dashboard Controls", unsafe_allow_html=True)
         
 # Let users switch between light and dark themes
         theme_mode = st.selectbox(
@@ -397,7 +409,7 @@ def filter_data(orders, products, filters):
 
 def overview_tab(filtered_orders, inventory, products, suppliers):
     """Show the main dashboard with key metrics and charts"""
-    st.markdown("### Executive Summary")
+    st.markdown(f"### {display_icon('dashboard', 28)} Executive Summary", unsafe_allow_html=True)
     st.caption("Key performance indicators and financial metrics overview")
     
     # Show the most important financial numbers
@@ -509,7 +521,7 @@ def overview_tab(filtered_orders, inventory, products, suppliers):
 
 def inventory_tab(inventory, products, open_po):
     """Show inventory levels and what needs to be reordered"""
-    st.markdown("### Inventory Management")
+    st.markdown(f"### {display_icon('inventory', 28)} Inventory Management", unsafe_allow_html=True)
     st.caption("Stock levels, reorder recommendations, and inventory optimization")
     
     # Warn about items that are running low
@@ -517,7 +529,7 @@ def inventory_tab(inventory, products, open_po):
     low_items = inventory[inventory['stock_status'] == 'Low']
     
     if len(critical_items) > 0:
-        st.error(f"ALERT: {len(critical_items)} items are at critical stock levels!")
+        st.error(f"{display_icon('alert', 20)} ALERT: {len(critical_items)} items are at critical stock levels!", unsafe_allow_html=True)
         
         with st.expander("View Critical Items"):
             critical_display = critical_items[['product_id', 'current_stock', 'safety_stock', 'rop']].copy()
@@ -525,10 +537,10 @@ def inventory_tab(inventory, products, open_po):
             st.dataframe(critical_display, use_container_width=True)
     
     if len(low_items) > 0:
-        st.warning(f"WARNING: {len(low_items)} items are at low stock levels")
+        st.warning(f"{display_icon('warning', 20)} WARNING: {len(low_items)} items are at low stock levels", unsafe_allow_html=True)
     
     # Show what we should order more of
-    st.markdown("#### Reorder Recommendations")
+    st.markdown(f"#### {display_icon('reorder', 24)} Reorder Recommendations", unsafe_allow_html=True)
     st.caption("Items requiring immediate attention based on current stock levels and reorder points")
     
     reorder_items = inventory[inventory['current_stock'] <= inventory['rop']].copy()
@@ -546,13 +558,13 @@ def inventory_tab(inventory, products, open_po):
         # Let users download the reorder list as a file
         csv = reorder_display.to_csv(index=False)
         st.download_button(
-            label="Download Reorder List",
+            label=f"{display_icon('download', 16)} Download Reorder List",
             data=csv,
             file_name=f"reorder_recommendations_{datetime.now().strftime('%Y%m%d')}.csv",
             mime="text/csv"
         )
     else:
-        st.success("All items are adequately stocked")
+        st.success(f"{display_icon('success', 20)} All items are adequately stocked", unsafe_allow_html=True)
     
     # Show charts to help understand inventory patterns
     col1, col2 = st.columns(2)
@@ -612,7 +624,7 @@ def inventory_tab(inventory, products, open_po):
 
 def suppliers_tab(filtered_orders, suppliers, open_po):
     """Show how well our suppliers are performing"""
-    st.markdown("### Supplier Performance")
+    st.markdown(f"### {display_icon('suppliers', 28)} Supplier Performance", unsafe_allow_html=True)
     st.caption("Supplier scorecards, performance matrix, and relationship management")
     
     # Calculate key performance metrics for each supplier
@@ -675,7 +687,7 @@ def suppliers_tab(filtered_orders, suppliers, open_po):
 
 def compliance_tab(filtered_orders):
     """Show how well we're following our processes"""
-    st.markdown("### Process Compliance Analysis")
+    st.markdown(f"### {display_icon('compliance', 28)} Process Compliance Analysis", unsafe_allow_html=True)
     st.caption("Happy path tracking, compliance rates, and process optimization")
     
     # Find orders that went perfectly (no problems at all)
@@ -735,13 +747,13 @@ def compliance_tab(filtered_orders):
         # Let users download the problem orders list
         csv = failure_display.to_csv(index=False)
         st.download_button(
-            label="Download Non-Compliant Orders",
+            label=f"{display_icon('download', 16)} Download Non-Compliant Orders",
             data=csv,
             file_name=f"non_compliant_orders_{datetime.now().strftime('%Y%m%d')}.csv",
             mime="text/csv"
         )
     else:
-        st.success("All orders are compliant!")
+        st.success(f"{display_icon('success', 20)} All orders are compliant!", unsafe_allow_html=True)
     
     # Show compliance rates by product category
     compliance_by_category = filtered_orders.groupby('category').agg({
@@ -763,7 +775,7 @@ def compliance_tab(filtered_orders):
 
 def forecast_tab(filtered_orders, products):
     """Show demand forecasting and what-if scenarios"""
-    st.markdown("### Demand Forecasting & Scenarios")
+    st.markdown(f"### {display_icon('forecast', 28)} Demand Forecasting & Scenarios", unsafe_allow_html=True)
     st.caption("Forecast accuracy analysis and scenario planning simulation")
     
     # Create sample forecast vs actual demand data
@@ -858,7 +870,7 @@ def run_scenario_simulation(orders, lead_time_change, demand_change):
 
 def main():
     # Show the main title and description
-    st.title("Supply Chain Planning Dashboard")
+    st.title(f"{display_icon('dashboard', 32)} Supply Chain Planning Dashboard", unsafe_allow_html=True)
     st.markdown("**Enterprise-level supply chain analytics and optimization platform**")
     
     # Get all the data we need for the dashboard
@@ -877,11 +889,11 @@ def main():
     
     # Create the main tabs for different sections
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "Overview", 
-        "Inventory", 
-        "Suppliers", 
-        "Compliance", 
-        "Forecast"
+        f"{display_icon('dashboard', 16)} Overview", 
+        f"{display_icon('inventory', 16)} Inventory", 
+        f"{display_icon('suppliers', 16)} Suppliers", 
+        f"{display_icon('compliance', 16)} Compliance", 
+        f"{display_icon('forecast', 16)} Forecast"
     ])
     
     with tab1:
