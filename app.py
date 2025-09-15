@@ -10,7 +10,7 @@ from utils import *
 # Set up the main page layout and appearance
 st.set_page_config(
     page_title="Supply Chain Planning Dashboard",
-    page_icon="📊",
+    page_icon="assets/icons/dashboard.svg",
     layout="wide",
     initial_sidebar_state="expanded"
 )
