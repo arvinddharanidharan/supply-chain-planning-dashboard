@@ -70,8 +70,19 @@ st.markdown("""
         color: #f9fafb !important;
     }
     
-    [data-theme="dark"] div[data-testid="metric-container"] * {
+    [data-theme="dark"] div[data-testid="metric-container"] label,
+    [data-theme="dark"] div[data-testid="metric-container"] div,
+    [data-theme="dark"] div[data-testid="metric-container"] span,
+    [data-theme="dark"] div[data-testid="metric-container"] p {
         color: #f9fafb !important;
+    }
+    
+    [data-theme="dark"] .metric-value {
+        color: #f9fafb !important;
+    }
+    
+    [data-theme="dark"] .metric-label {
+        color: #d1d5db !important;
     }
     
     /* Use colors that everyone can see clearly */
