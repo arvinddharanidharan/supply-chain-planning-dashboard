@@ -275,93 +275,92 @@ def generate_open_customer_orders(products):
     df['total_value'] = df['quantity'] * df['unit_price']
     return df
 
-def create_sidebar_filters(orders, suppliers, products):
-    """Build the filter controls in the left sidebar"""
-    with st.sidebar:
-        st.markdown(f"## {display_icon('controls', 24)} Dashboard Controls", unsafe_allow_html=True)
+def create_dashboard_controls(orders, suppliers, products):
+    """Build the filter controls in the main layout"""
+    st.markdown(f"#### {display_icon('controls', 20)} Filters", unsafe_allow_html=True)
+    
+    # Let users switch between light and dark themes
+    theme_mode = st.selectbox(
+        "Display Theme",
+        ["Auto (System)", "Light Mode", "Dark Mode"],
+        help="Choose your preferred display theme"
+    )
+    
+    # Actually apply the theme the user selected
+    if theme_mode == "Dark Mode":
+        st.markdown('<script>document.body.setAttribute("data-theme", "dark");</script>', unsafe_allow_html=True)
+    elif theme_mode == "Light Mode":
+        st.markdown('<script>document.body.removeAttribute("data-theme");</script>', unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # Let users pick how far back to look at data
+    time_window = st.selectbox(
+        "Time Window",
+        ["Last 30 Days", "Last 90 Days", "Last 6 Months", "Last Year", "All Time"],
+        index=0
+    )
+    
+    # Calculate the actual start date based on what they picked
+    end_date = orders['order_date'].max().date()
+    if time_window == "Last 30 Days":
+        start_date = end_date - timedelta(days=30)
+    elif time_window == "Last 90 Days":
+        start_date = end_date - timedelta(days=90)
+    elif time_window == "Last 6 Months":
+        start_date = end_date - timedelta(days=180)
+    elif time_window == "Last Year":
+        start_date = end_date - timedelta(days=365)
+    else:
+        start_date = orders['order_date'].min().date()
+    
+    date_range = st.date_input(
+        "Custom Date Range",
+        value=[start_date, end_date],
+        min_value=orders['order_date'].min().date(),
+        max_value=orders['order_date'].max().date()
+    )
+    
+    st.markdown("---")
+    
+    # Let users filter by specific suppliers
+    supplier_options = ['All Suppliers'] + sorted(orders['supplier_id'].unique().tolist())
+    selected_suppliers = st.multiselect(
+        "Suppliers",
+        options=supplier_options,
+        default=['All Suppliers']
+    )
+    
+    # Filter by product importance (A=most important, C=least)
+    abc_options = ['All Classes'] + sorted(products['abc_class'].unique().tolist())
+    selected_abc = st.multiselect(
+        "ABC Classification",
+        options=abc_options,
+        default=['All Classes']
+    )
+    
+    # Filter by type of product
+    category_options = ['All Categories'] + sorted(orders['category'].unique().tolist())
+    selected_categories = st.multiselect(
+        "Product Categories",
+        options=category_options,
+        default=['All Categories']
+    )
+    
+    # Filter by how well processes were followed
+    st.markdown("---")
+    compliance_filter = st.selectbox(
+        "Process Compliance",
+        ["All Orders", "Compliant Only", "Non-Compliant Only", "Happy Path Only"]
+    )
         
-# Let users switch between light and dark themes
-        theme_mode = st.selectbox(
-            "Display Theme",
-            ["Auto (System)", "Light Mode", "Dark Mode"],
-            help="Choose your preferred display theme"
-        )
-        
-        # Actually apply the theme the user selected
-        if theme_mode == "Dark Mode":
-            st.markdown('<script>document.body.setAttribute("data-theme", "dark");</script>', unsafe_allow_html=True)
-        elif theme_mode == "Light Mode":
-            st.markdown('<script>document.body.removeAttribute("data-theme");</script>', unsafe_allow_html=True)
-        
-        st.markdown("---")
-        
-        # Let users pick how far back to look at data
-        time_window = st.selectbox(
-            "Time Window",
-            ["Last 30 Days", "Last 90 Days", "Last 6 Months", "Last Year", "All Time"],
-            index=0
-        )
-        
-        # Calculate the actual start date based on what they picked
-        end_date = orders['order_date'].max().date()
-        if time_window == "Last 30 Days":
-            start_date = end_date - timedelta(days=30)
-        elif time_window == "Last 90 Days":
-            start_date = end_date - timedelta(days=90)
-        elif time_window == "Last 6 Months":
-            start_date = end_date - timedelta(days=180)
-        elif time_window == "Last Year":
-            start_date = end_date - timedelta(days=365)
-        else:
-            start_date = orders['order_date'].min().date()
-        
-        date_range = st.date_input(
-            "Custom Date Range",
-            value=[start_date, end_date],
-            min_value=orders['order_date'].min().date(),
-            max_value=orders['order_date'].max().date()
-        )
-        
-        st.markdown("---")
-        
-        # Let users filter by specific suppliers
-        supplier_options = ['All Suppliers'] + sorted(orders['supplier_id'].unique().tolist())
-        selected_suppliers = st.multiselect(
-            "Suppliers",
-            options=supplier_options,
-            default=['All Suppliers']
-        )
-        
-        # Filter by product importance (A=most important, C=least)
-        abc_options = ['All Classes'] + sorted(products['abc_class'].unique().tolist())
-        selected_abc = st.multiselect(
-            "ABC Classification",
-            options=abc_options,
-            default=['All Classes']
-        )
-        
-        # Filter by type of product
-        category_options = ['All Categories'] + sorted(orders['category'].unique().tolist())
-        selected_categories = st.multiselect(
-            "Product Categories",
-            options=category_options,
-            default=['All Categories']
-        )
-        
-        # Filter by how well processes were followed
-        st.markdown("---")
-        compliance_filter = st.selectbox(
-            "Process Compliance",
-            ["All Orders", "Compliant Only", "Non-Compliant Only", "Happy Path Only"]
-        )
-        
-        return {
-            'date_range': date_range,
-            'suppliers': selected_suppliers,
-            'abc_classes': selected_abc,
-            'categories': selected_categories,
-            'compliance': compliance_filter
-        }
+    return {
+        'date_range': date_range,
+        'suppliers': selected_suppliers,
+        'abc_classes': selected_abc,
+        'categories': selected_categories,
+        'compliance': compliance_filter
+    }
 
 def filter_data(orders, products, filters):
     """Take the user's filter choices and apply them to the data"""
@@ -869,51 +868,68 @@ def run_scenario_simulation(orders, lead_time_change, demand_change):
     }
 
 def main():
-    # Show the main title and description
-    st.markdown(f"# {display_icon('dashboard', 32)} Supply Chain Planning Dashboard", unsafe_allow_html=True)
-    st.markdown("**Enterprise-level supply chain analytics and optimization platform**")
+    # Professional header with integrated layout
+    st.markdown("""
+    <div style="background: linear-gradient(90deg, #0ea5e9 0%, #3b82f6 100%); padding: 2rem; border-radius: 10px; margin-bottom: 2rem; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 2.5rem; font-weight: 700;">Supply Chain Planning Dashboard</h1>
+        <p style="color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0; font-size: 1.1rem;">Professional Analytics & Optimization Platform</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Get all the data we need for the dashboard
     orders, inventory, products, suppliers, open_po, open_co = load_data()
     
-    # Set up the filter controls and apply them
-    filters = create_sidebar_filters(orders, suppliers, products)
-    filtered_orders = filter_data(orders, products, filters)
+    # Create main layout with sidebar integration
+    col1, col2 = st.columns([1, 4])
     
-    # Tell the user what data we're showing
-    if len(filtered_orders) == 0:
-        st.warning("No data matches the selected filters. Showing all data.")
-        filtered_orders = orders
-    else:
-        st.success(f"Analyzing {len(filtered_orders):,} orders from {len(filtered_orders['supplier_id'].unique())} suppliers")
+    with col1:
+        st.markdown("### Dashboard Controls")
+        filters = create_dashboard_controls(orders, suppliers, products)
     
-    # Create the main tabs for different sections
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "Overview", 
-        "Inventory", 
-        "Suppliers", 
-        "Compliance", 
-        "Forecast"
-    ])
+    with col2:
+        filtered_orders = filter_data(orders, products, filters)
     
-    with tab1:
-        overview_tab(filtered_orders, inventory, products, suppliers)
+        # Tell the user what data we're showing
+        if len(filtered_orders) == 0:
+            st.warning("No data matches the selected filters. Showing all data.")
+            filtered_orders = orders
+        else:
+            st.success(f"Analyzing {len(filtered_orders):,} orders from {len(filtered_orders['supplier_id'].unique())} suppliers")
+        
+        # Create the main tabs for different sections
+        tab1, tab2, tab3, tab4, tab5 = st.tabs([
+            "Overview", 
+            "Inventory", 
+            "Suppliers", 
+            "Compliance", 
+            "Forecast"
+        ])
+        
+        with tab1:
+            overview_tab(filtered_orders, inventory, products, suppliers)
+        
+        with tab2:
+            inventory_tab(inventory, products, open_po)
+        
+        with tab3:
+            suppliers_tab(filtered_orders, suppliers, open_po)
+        
+        with tab4:
+            compliance_tab(filtered_orders)
+        
+        with tab5:
+            forecast_tab(filtered_orders, products)
     
-    with tab2:
-        inventory_tab(inventory, products, open_po)
-    
-    with tab3:
-        suppliers_tab(filtered_orders, suppliers, open_po)
-    
-    with tab4:
-        compliance_tab(filtered_orders)
-    
-    with tab5:
-        forecast_tab(filtered_orders, products)
-    
-    # Add a footer at the bottom
-    st.markdown("---")
-    st.markdown("*Supply Chain Planning Dashboard - Professional Analytics Platform*")
+    # Professional footer
+    st.markdown("""
+    <div style="margin-top: 3rem; padding: 2rem; background-color: #f8fafc; border-radius: 10px; border-top: 3px solid #0ea5e9;">
+        <div style="text-align: center; color: #64748b; font-size: 0.9rem;">
+            <p style="margin: 0;"><strong>Designed by:</strong> Arvind Dharanidharan Padmanathan</p>
+            <p style="margin: 0.5rem 0;">This is a real-world simulation for educational purposes only.</p>
+            <p style="margin: 0; font-size: 0.8rem;">© 2024 Supply Chain Analytics Dashboard. All rights reserved. | Educational Use Only | Not for Commercial Distribution</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
