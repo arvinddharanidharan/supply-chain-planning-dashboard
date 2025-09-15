@@ -200,6 +200,12 @@ st.markdown("""
         border-color: #06b6d4;
         color: #06b6d4;
     }
+    
+    /* Frame styling for dark theme */
+    [data-theme="dark"] .dashboard-frame {
+        background-color: #1f2937 !important;
+        border-color: #374151 !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -879,14 +885,21 @@ def main():
     # Get all the data we need for the dashboard
     orders, inventory, products, suppliers, open_po, open_co = load_data()
     
-    # Create main layout with sidebar integration
+    # Create main layout with framed sections
     col1, col2 = st.columns([1, 4])
     
     with col1:
+        st.markdown("""
+        <div class="dashboard-frame" style="background: white; padding: 1.5rem; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1rem;">
+        """, unsafe_allow_html=True)
         st.markdown("### Dashboard Controls")
         filters = create_dashboard_controls(orders, suppliers, products)
+        st.markdown("</div>", unsafe_allow_html=True)
     
     with col2:
+        st.markdown("""
+        <div class="dashboard-frame" style="background: white; padding: 1.5rem; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1rem;">
+        """, unsafe_allow_html=True)
         filtered_orders = filter_data(orders, products, filters)
     
         # Tell the user what data we're showing
@@ -919,6 +932,8 @@ def main():
         
         with tab5:
             forecast_tab(filtered_orders, products)
+        
+        st.markdown("</div>", unsafe_allow_html=True)
     
     # Professional footer
     st.markdown("""
