@@ -558,7 +558,7 @@ def inventory_tab(inventory, products, open_po):
         # Let users download the reorder list as a file
         csv = reorder_display.to_csv(index=False)
         st.download_button(
-            label=f"{display_icon('download', 16)} Download Reorder List",
+            label="📥 Download Reorder List",
             data=csv,
             file_name=f"reorder_recommendations_{datetime.now().strftime('%Y%m%d')}.csv",
             mime="text/csv"
@@ -747,7 +747,7 @@ def compliance_tab(filtered_orders):
         # Let users download the problem orders list
         csv = failure_display.to_csv(index=False)
         st.download_button(
-            label=f"{display_icon('download', 16)} Download Non-Compliant Orders",
+            label="📥 Download Non-Compliant Orders",
             data=csv,
             file_name=f"non_compliant_orders_{datetime.now().strftime('%Y%m%d')}.csv",
             mime="text/csv"
@@ -870,7 +870,7 @@ def run_scenario_simulation(orders, lead_time_change, demand_change):
 
 def main():
     # Show the main title and description
-    st.title(f"{display_icon('dashboard', 32)} Supply Chain Planning Dashboard", unsafe_allow_html=True)
+    st.markdown(f"# {display_icon('dashboard', 32)} Supply Chain Planning Dashboard", unsafe_allow_html=True)
     st.markdown("**Enterprise-level supply chain analytics and optimization platform**")
     
     # Get all the data we need for the dashboard
@@ -889,11 +889,11 @@ def main():
     
     # Create the main tabs for different sections
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        f"{display_icon('dashboard', 16)} Overview", 
-        f"{display_icon('inventory', 16)} Inventory", 
-        f"{display_icon('suppliers', 16)} Suppliers", 
-        f"{display_icon('compliance', 16)} Compliance", 
-        f"{display_icon('forecast', 16)} Forecast"
+        "📊 Overview", 
+        "📦 Inventory", 
+        "🏭 Suppliers", 
+        "✅ Compliance", 
+        "📈 Forecast"
     ])
     
     with tab1:
