@@ -900,15 +900,15 @@ def main():
     # Create main layout with framed sections
     st.markdown("""
     <style>
-    .dashboard-container {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 10px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        margin-bottom: 1rem;
+    div[data-testid="column"] > div {
+        background: white !important;
+        padding: 1.5rem !important;
+        border-radius: 10px !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+        margin-bottom: 1rem !important;
     }
-    [data-theme="dark"] .dashboard-container {
+    [data-theme="dark"] div[data-testid="column"] > div {
         background-color: #1f2937 !important;
         border-color: #374151 !important;
     }
@@ -919,14 +919,11 @@ def main():
     
     with col1:
         with st.container():
-            st.markdown('<div class="dashboard-container">', unsafe_allow_html=True)
             st.markdown("### Dashboard Controls")
             filters = create_dashboard_controls(orders, suppliers, products)
-            st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
         with st.container():
-            st.markdown('<div class="dashboard-container">', unsafe_allow_html=True)
             filtered_orders = filter_data(orders, products, filters)
     
         # Tell the user what data we're showing
@@ -960,7 +957,7 @@ def main():
         with tab5:
             forecast_tab(filtered_orders, products)
             
-            st.markdown('</div>', unsafe_allow_html=True)
+
     
     # Professional footer
     st.markdown("""
