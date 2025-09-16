@@ -583,18 +583,38 @@ def overview_tab(filtered_orders, inventory, products, suppliers):
             days_in_period = (filtered_orders['order_date'].max() - filtered_orders['order_date'].min()).days
             annualized_cogs = total_spend * (365 / max(days_in_period, 1))
             turnover = annualized_cogs / working_capital if working_capital > 0 else 0
-            st.metric("Inventory Turnover", f"{turnover:.1f}x",
-                     help="How many times inventory is sold per year")
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Inventory Turnover</div>
+                <div style="font-size: 2rem; font-weight: 700;">{turnover:.1f}x</div>
+                <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Times per year</div>
+            </div>
+            """, unsafe_allow_html=True)
         except:
-            st.metric("Inventory Turnover", "N/A")
+            st.markdown("""
+            <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Inventory Turnover</div>
+                <div style="font-size: 2rem; font-weight: 700;">N/A</div>
+            </div>
+            """, unsafe_allow_html=True)
     
     with col5:
         try:
             carrying_cost = inventory['carrying_cost'].sum()
-            st.metric("Annual Carrying Cost", f"${format_number(carrying_cost)}",
-                     help=f"Annual cost to hold inventory: ${carrying_cost:,.0f}")
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Annual Carrying Cost</div>
+                <div style="font-size: 2rem; font-weight: 700;">${format_number(carrying_cost)}</div>
+                <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Total: ${carrying_cost:,.0f}</div>
+            </div>
+            """, unsafe_allow_html=True)
         except:
-            st.metric("Annual Carrying Cost", "N/A")
+            st.markdown("""
+            <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Annual Carrying Cost</div>
+                <div style="font-size: 2rem; font-weight: 700;">N/A</div>
+            </div>
+            """, unsafe_allow_html=True)
     
     st.markdown("---")
     
@@ -604,28 +624,54 @@ def overview_tab(filtered_orders, inventory, products, suppliers):
     with col1:
         otd_pct = calculate_otd_percentage(filtered_orders)
         delta = otd_pct - 85  # Target is 85%
-        st.metric("On-Time Delivery %", f"{otd_pct:.1f}%", f"{delta:+.1f}%",
-                 help="Percentage of orders delivered on time")
+        delta_color = "#10b981" if delta >= 0 else "#ef4444"
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">On-Time Delivery %</div>
+            <div style="font-size: 2rem; font-weight: 700;">{otd_pct:.1f}%</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem; color: {delta_color};">Target: 85% ({delta:+.1f}%)</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col2:
         avg_lead_time = filtered_orders['lead_time'].mean()
-        st.metric("Avg Lead Time", f"{avg_lead_time:.1f} days",
-                 help="Average time from order to delivery")
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Avg Lead Time</div>
+            <div style="font-size: 2rem; font-weight: 700;">{avg_lead_time:.1f}</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">days</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col3:
         compliance = calculate_process_compliance(filtered_orders, ['mrp_compliance', 'setup_compliance'])
-        st.metric("Process Compliance", f"{compliance:.1f}%",
-                 help="Percentage following proper processes")
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Process Compliance</div>
+            <div style="font-size: 2rem; font-weight: 700;">{compliance:.1f}%</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Following proper processes</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col4:
         avg_defect_rate = filtered_orders['defect_rate'].mean()
-        st.metric("Avg Defect Rate", f"{avg_defect_rate:.2f}%",
-                 help="Average percentage of defective units")
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Avg Defect Rate</div>
+            <div style="font-size: 2rem; font-weight: 700;">{avg_defect_rate:.2f}%</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Defective units</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col5:
         critical_stock = (inventory['stock_status'] == 'Critical').sum()
-        st.metric("Critical Stock Items", critical_stock,
-                 help="Items below safety stock requiring attention")
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Critical Stock Items</div>
+            <div style="font-size: 2rem; font-weight: 700;">{critical_stock}</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Items needing attention</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     # Add some visual charts to make the data easier to understand
     st.markdown("---")
@@ -788,13 +834,31 @@ def inventory_tab(inventory, products, open_po):
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Total Open POs", len(open_po), help="Number of purchase orders currently open and pending delivery")
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Total Open POs</div>
+            <div style="font-size: 2rem; font-weight: 700;">{len(open_po)}</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Pending delivery</div>
+        </div>
+        """, unsafe_allow_html=True)
     with col2:
         po_value = open_po['total_value'].sum()
-        st.metric("Total PO Value", f"${format_number(po_value)}", help=f"Total monetary value of all open purchase orders: ${po_value:,.0f}")
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Total PO Value</div>
+            <div style="font-size: 2rem; font-weight: 700;">${format_number(po_value)}</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Total: ${po_value:,.0f}</div>
+        </div>
+        """, unsafe_allow_html=True)
     with col3:
         delayed_pos = len(open_po[open_po['status'] == 'Delayed'])
-        st.metric("Delayed POs", delayed_pos, help="Number of purchase orders that are delayed beyond expected delivery date")
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Delayed POs</div>
+            <div style="font-size: 2rem; font-weight: 700;">{delayed_pos}</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Orders delayed</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     # Show how many orders are in each status
     po_status = open_po['status'].value_counts()
@@ -896,21 +960,44 @@ def compliance_tab(filtered_orders):
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("Happy Path Rate", f"{happy_path_rate:.1f}%",
-                 help="Percentage of orders following optimal process flow: compliant MRP & setup, on-time delivery, and low defect rate")
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Happy Path Rate</div>
+            <div style="font-size: 2rem; font-weight: 700;">{happy_path_rate:.1f}%</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Optimal process flow</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col2:
         mrp_compliance = (filtered_orders['mrp_compliance'] == 'Compliant').mean() * 100
-        st.metric("MRP Compliance", f"{mrp_compliance:.1f}%", help="Percentage of orders following proper Material Requirements Planning processes")
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">MRP Compliance</div>
+            <div style="font-size: 2rem; font-weight: 700;">{mrp_compliance:.1f}%</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Material planning</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col3:
         setup_compliance = (filtered_orders['setup_compliance'] == 'Compliant').mean() * 100
-        st.metric("Setup Compliance", f"{setup_compliance:.1f}%", help="Percentage of orders following proper production setup procedures")
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Setup Compliance</div>
+            <div style="font-size: 2rem; font-weight: 700;">{setup_compliance:.1f}%</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Production setup</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col4:
         quality_orders = len(filtered_orders[filtered_orders['defect_rate'] < 1.0])
         quality_rate = quality_orders / len(filtered_orders) * 100 if len(filtered_orders) > 0 else 0
-        st.metric("Quality Orders", f"{quality_rate:.1f}%", help="Percentage of orders with defect rate below 1% threshold")
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Quality Orders</div>
+            <div style="font-size: 2rem; font-weight: 700;">{quality_rate:.1f}%</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Low defect rate</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     # Look at orders that had problems
     st.markdown("#### Non-Compliant Orders Analysis")
@@ -983,16 +1070,33 @@ def forecast_tab(filtered_orders, products):
     
     with col1:
         mape = calculate_mape(forecast_data['actual'], forecast_data['forecast'])
-        st.metric("Forecast Accuracy (MAPE)", f"{mape:.1f}%",
-                 help="Mean Absolute Percentage Error - measures forecast accuracy, lower values indicate better forecasting")
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Forecast Accuracy (MAPE)</div>
+            <div style="font-size: 2rem; font-weight: 700;">{mape:.1f}%</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Lower is better</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col2:
         accuracy = 100 - mape
-        st.metric("Forecast Accuracy", f"{accuracy:.1f}%", help="Overall forecast accuracy percentage (100% - MAPE). Higher values indicate better forecasting performance")
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Forecast Accuracy</div>
+            <div style="font-size: 2rem; font-weight: 700;">{accuracy:.1f}%</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Overall accuracy</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col3:
         bias = (forecast_data['forecast'] - forecast_data['actual']).mean()
-        st.metric("Forecast Bias", f"{bias:+.0f} units", help="Average difference between forecast and actual demand. Positive = over-forecasting, Negative = under-forecasting")
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Forecast Bias</div>
+            <div style="font-size: 2rem; font-weight: 700;">{bias:+.0f}</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">units difference</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     # Chart showing predicted vs actual demand over time
     fig_forecast = go.Figure()
@@ -1038,18 +1142,31 @@ def forecast_tab(filtered_orders, products):
         
         with col1:
             otd_change = scenario_results['otd_change']
-            st.metric("OTD Impact", f"{otd_change:+.1f}%", 
-                     help=f"Expected change in On-Time Delivery percentage: {otd_change:+.1f}%")
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">OTD Impact</div>
+                <div style="font-size: 2rem; font-weight: 700;">{otd_change:+.1f}%</div>
+                <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Delivery performance</div>
+            </div>
+            """, unsafe_allow_html=True)
         with col2:
             inv_change = scenario_results['inventory_change']
-            st.metric("Inventory Impact", f"${format_number(abs(inv_change))}", 
-                     delta=f"{inv_change:+,.0f}",
-                     help=f"Expected change in inventory value: ${inv_change:+,.0f}")
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Inventory Impact</div>
+                <div style="font-size: 2rem; font-weight: 700;">${format_number(abs(inv_change))}</div>
+                <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Change: ${inv_change:+,.0f}</div>
+            </div>
+            """, unsafe_allow_html=True)
         with col3:
             cost_change = scenario_results['cost_change']
-            st.metric("Cost Impact", f"${format_number(abs(cost_change))}", 
-                     delta=f"{cost_change:+,.0f}",
-                     help=f"Expected change in total costs: ${cost_change:+,.0f}")
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Cost Impact</div>
+                <div style="font-size: 2rem; font-weight: 700;">${format_number(abs(cost_change))}</div>
+                <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Change: ${cost_change:+,.0f}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
 def generate_forecast_data(orders):
     """Create sample data comparing forecasts to what actually happened"""
