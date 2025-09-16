@@ -6,11 +6,17 @@ from email.mime.base import MIMEBase
 from email import encoders
 import io
 import streamlit as st
+from datetime import datetime
 
 # Configuration
 SUPERVISOR_EMAIL = "arvinddharanidharan3@gmail.com"  # Hardcoded supervisor email
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
+
+def is_morning_alert_time():
+    """Check if current time is 6:00 AM for automatic alerts"""
+    current_time = datetime.now()
+    return current_time.hour == 6 and current_time.minute == 0
 
 def send_critical_alert_email(critical_count):
     """Send automatic critical alert notification"""

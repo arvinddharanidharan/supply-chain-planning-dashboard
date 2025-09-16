@@ -6,7 +6,7 @@ import numpy as np
 from datetime import datetime, timedelta
 import io
 from utils import *
-from email_service import send_critical_alert_email, send_critical_items_report
+from email_service import send_critical_alert_email, send_critical_items_report, is_morning_alert_time
 
 def display_icon(icon_name, size=20):
     """Display SVG icon inline"""
@@ -572,18 +572,21 @@ def inventory_tab(inventory, products, open_po):
     if len(critical_items) > 0:
         st.error(f"CRITICAL ALERT: {len(critical_items)} items are at critical stock levels!")
         
-        # Auto-send alert email (only once when critical items first detected)
-        critical_key = f"critical_alert_{len(critical_items)}"
-        if critical_key not in st.session_state:
-            try:
-                if send_critical_alert_email(len(critical_items)):
-                    st.success("✓ Critical alert email sent to supervisor")
-                    st.info("📬 Check spam/junk folder if email not received")
-                else:
-                    st.warning("⚠ Email service not configured or failed")
-            except Exception as e:
-                st.error(f"Email error: {str(e)}")
-            st.session_state[critical_key] = True
+        # Auto-send alert email (only at 6:00 AM)
+        if is_morning_alert_time():
+            critical_key = f"morning_alert_{datetime.now().strftime('%Y%m%d')}"
+            if critical_key not in st.session_state:
+                try:
+                    if send_critical_alert_email(len(critical_items)):
+                        st.success("✓ Morning critical alert email sent to supervisor")
+                        st.info("📬 Check spam/junk folder if email not received")
+                    else:
+                        st.warning("⚠ Email service not configured or failed")
+                except Exception as e:
+                    st.error(f"Email error: {str(e)}")
+                st.session_state[critical_key] = True
+        else:
+            st.info(f"🕰 Automatic alerts sent daily at 6:00 AM. Current time: {datetime.now().strftime('%H:%M')}")
         
         col1, col2 = st.columns([3, 1])
         
