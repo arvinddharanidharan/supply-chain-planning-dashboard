@@ -543,20 +543,40 @@ def overview_tab(filtered_orders, inventory, products, suppliers):
     with col1:
         try:
             copq = filtered_orders['quality_cost'].sum() + filtered_orders['late_penalty'].sum()
-            st.metric("Cost of Poor Quality", f"${format_number(copq)}", 
-                     help=f"Total cost of quality issues and late delivery penalties: ${copq:,.0f}")
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Cost of Poor Quality</div>
+                <div style="font-size: 2rem; font-weight: 700;">${format_number(copq)}</div>
+                <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Total: ${copq:,.0f}</div>
+            </div>
+            """, unsafe_allow_html=True)
         except:
-            st.metric("Cost of Poor Quality", "N/A")
+            st.markdown("""
+            <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Cost of Poor Quality</div>
+                <div style="font-size: 2rem; font-weight: 700;">N/A</div>
+            </div>
+            """, unsafe_allow_html=True)
     
     with col2:
         working_capital = inventory['inventory_value'].sum()
-        st.metric("Working Capital", f"${format_number(working_capital)}",
-                 help=f"Total value of inventory on hand: ${working_capital:,.0f}")
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Working Capital</div>
+            <div style="font-size: 2rem; font-weight: 700;">${format_number(working_capital)}</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Total: ${working_capital:,.0f}</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col3:
         total_spend = filtered_orders['total_value'].sum()
-        st.metric("Procurement Spend", f"${format_number(total_spend)}",
-                 help=f"Total spending on procurement for selected period: ${total_spend:,.0f}")
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Procurement Spend</div>
+            <div style="font-size: 2rem; font-weight: 700;">${format_number(total_spend)}</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">Total: ${total_spend:,.0f}</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col4:
         try:
