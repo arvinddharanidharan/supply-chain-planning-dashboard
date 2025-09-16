@@ -1279,7 +1279,60 @@ def main():
         else:
             st.success(f"Analyzing {len(filtered_orders):,} orders from {len(filtered_orders['supplier_id'].unique())} suppliers")
         
-        # Create the main tabs for different sections
+        # Create the main tabs for different sections with custom styling
+        st.markdown("""
+        <style>
+        /* Custom tab styling for universal theme compatibility */
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 4px;
+            background: transparent;
+        }
+        
+        .stTabs [data-baseweb="tab"] {
+            height: 60px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%) !important;
+            border-radius: 12px 12px 0 0;
+            border: 1px solid #cbd5e1;
+            color: #475569 !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-bottom: 0;
+        }
+        
+        .stTabs [data-baseweb="tab"]:hover {
+            background: linear-gradient(135deg, #cbd5e1 0%, #e2e8f0 100%) !important;
+            color: #334155 !important;
+        }
+        
+        .stTabs [aria-selected="true"] {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
+            color: white !important;
+            font-weight: 600;
+            border-color: #1e40af;
+            box-shadow: 0 4px 6px rgba(30, 64, 175, 0.2);
+        }
+        
+        /* Dark theme overrides */
+        [data-theme="dark"] .stTabs [data-baseweb="tab"] {
+            background: linear-gradient(135deg, #374151 0%, #4b5563 100%) !important;
+            border-color: #6b7280;
+            color: #d1d5db !important;
+        }
+        
+        [data-theme="dark"] .stTabs [data-baseweb="tab"]:hover {
+            background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%) !important;
+            color: #f9fafb !important;
+        }
+        
+        [data-theme="dark"] .stTabs [aria-selected="true"] {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
+            color: white !important;
+            border-color: #3b82f6;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
         tab1, tab2, tab3, tab4, tab5 = st.tabs([
             "Overview", 
             "Inventory", 
