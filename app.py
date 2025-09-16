@@ -892,29 +892,36 @@ def forecast_tab(filtered_orders, products):
     
     with col1:
         lead_time_change = st.slider("Lead Time Change (%)", -50, 50, 0, 5)
-        demand_change = st.slider("Demand Change (%)", -30, 50, 0, 5)
     
     with col2:
-        if st.button("Run Scenario"):
-            scenario_results = run_scenario_simulation(filtered_orders, lead_time_change, demand_change)
-            
-            st.markdown("##### Scenario Impact:")
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                otd_change = scenario_results['otd_change']
-                st.metric("OTD Impact", f"{otd_change:+.1f}%", 
-                         help=f"Expected change in On-Time Delivery percentage: {otd_change:+.1f}%")
-            with col2:
-                inv_change = scenario_results['inventory_change']
-                st.metric("Inventory Impact", f"${format_number(abs(inv_change))}", 
-                         delta=f"{inv_change:+,.0f}",
-                         help=f"Expected change in inventory value: ${inv_change:+,.0f}")
-            with col3:
-                cost_change = scenario_results['cost_change']
-                st.metric("Cost Impact", f"${format_number(abs(cost_change))}", 
-                         delta=f"{cost_change:+,.0f}",
-                         help=f"Expected change in total costs: ${cost_change:+,.0f}")
+        demand_change = st.slider("Demand Change (%)", -30, 50, 0, 5)
+    
+    # Run scenario button with spacing
+    st.markdown("")
+    if st.button("Run Scenario", type="primary"):
+        scenario_results = run_scenario_simulation(filtered_orders, lead_time_change, demand_change)
+        
+        # Clean spacing before results
+        st.markdown("---")
+        st.markdown("#### Scenario Impact")
+        st.caption("Projected changes based on your scenario parameters")
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            otd_change = scenario_results['otd_change']
+            st.metric("OTD Impact", f"{otd_change:+.1f}%", 
+                     help=f"Expected change in On-Time Delivery percentage: {otd_change:+.1f}%")
+        with col2:
+            inv_change = scenario_results['inventory_change']
+            st.metric("Inventory Impact", f"${format_number(abs(inv_change))}", 
+                     delta=f"{inv_change:+,.0f}",
+                     help=f"Expected change in inventory value: ${inv_change:+,.0f}")
+        with col3:
+            cost_change = scenario_results['cost_change']
+            st.metric("Cost Impact", f"${format_number(abs(cost_change))}", 
+                     delta=f"{cost_change:+,.0f}",
+                     help=f"Expected change in total costs: ${cost_change:+,.0f}")
 
 def generate_forecast_data(orders):
     """Create sample data comparing forecasts to what actually happened"""
