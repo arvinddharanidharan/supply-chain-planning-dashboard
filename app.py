@@ -902,11 +902,19 @@ def forecast_tab(filtered_orders, products):
             col1, col2, col3 = st.columns(3)
             
             with col1:
-                st.metric("OTD Impact", f"{scenario_results['otd_change']:+.1f}%", help="Expected change in On-Time Delivery percentage based on scenario parameters")
+                otd_change = scenario_results['otd_change']
+                st.metric("OTD Impact", f"{otd_change:+.1f}%", 
+                         help=f"Expected change in On-Time Delivery percentage: {otd_change:+.1f}%")
             with col2:
-                st.metric("Inventory Impact", f"${scenario_results['inventory_change']:+,.0f}", help="Expected change in inventory value due to demand fluctuations")
+                inv_change = scenario_results['inventory_change']
+                st.metric("Inventory Impact", f"${format_number(abs(inv_change))}", 
+                         delta=f"{inv_change:+,.0f}",
+                         help=f"Expected change in inventory value: ${inv_change:+,.0f}")
             with col3:
-                st.metric("Cost Impact", f"${scenario_results['cost_change']:+,.0f}", help="Expected change in total costs including quality and penalty costs")
+                cost_change = scenario_results['cost_change']
+                st.metric("Cost Impact", f"${format_number(abs(cost_change))}", 
+                         delta=f"{cost_change:+,.0f}",
+                         help=f"Expected change in total costs: ${cost_change:+,.0f}")
 
 def generate_forecast_data(orders):
     """Create sample data comparing forecasts to what actually happened"""
