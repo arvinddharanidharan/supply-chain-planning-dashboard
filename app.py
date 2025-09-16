@@ -624,12 +624,13 @@ def overview_tab(filtered_orders, inventory, products, suppliers):
     with col1:
         otd_pct = calculate_otd_percentage(filtered_orders)
         delta = otd_pct - 85  # Target is 85%
-        delta_color = "#10b981" if delta >= 0 else "#ef4444"
+        delta_color = "#22c55e" if delta >= 0 else "#fbbf24"  # Bright green or yellow for visibility
+        delta_symbol = "↗" if delta >= 0 else "↘"
         st.markdown(f"""
         <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 1.5rem; border-radius: 12px; color: white; margin: 0.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">On-Time Delivery %</div>
             <div style="font-size: 2rem; font-weight: 700;">{otd_pct:.1f}%</div>
-            <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem; color: {delta_color};">Target: 85% ({delta:+.1f}%)</div>
+            <div style="font-size: 0.75rem; margin-top: 0.25rem; color: {delta_color}; font-weight: 600;">Target: 85% {delta_symbol} {abs(delta):.1f}%</div>
         </div>
         """, unsafe_allow_html=True)
     
