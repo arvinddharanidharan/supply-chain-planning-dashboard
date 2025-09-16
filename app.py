@@ -42,6 +42,22 @@ st.set_page_config(
 # Custom styling to make the dashboard look professional and accessible
 st.markdown("""
 <style>
+    /* Universal metric styling - works in all themes */
+    div[data-testid="metric-container"] {
+        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
+        color: white !important;
+        border-radius: 12px !important;
+        padding: 1.5rem !important;
+        border: none !important;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+        margin: 0.5rem 0 !important;
+    }
+    
+    div[data-testid="metric-container"] * {
+        color: white !important;
+        background: transparent !important;
+    }
+    
     /* Basic styles that work in both light and dark themes */
     .main .block-container {
         padding-top: 1rem;
