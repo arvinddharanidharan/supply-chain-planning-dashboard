@@ -8,7 +8,7 @@ import io
 import streamlit as st
 
 # Configuration
-SUPERVISOR_EMAIL = "jamalahmedkashmiri@gmail.com"  # Hardcoded supervisor email
+SUPERVISOR_EMAIL = "johnyblack1995@gmail.com"  # Hardcoded supervisor email
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 
