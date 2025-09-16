@@ -8,7 +8,7 @@ import io
 import streamlit as st
 
 # Configuration
-SUPERVISOR_EMAIL = "supervisor@company.com"  # Hardcoded supervisor email
+SUPERVISOR_EMAIL = "jamalahmedkashmiri@gmail.com"  # Hardcoded supervisor email
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 
@@ -49,9 +49,10 @@ This is an automated alert from the Supply Chain Planning Dashboard.
         print("Debug: Logging in...")
         server.login(sender_email, sender_password)
         print("Debug: Sending message...")
-        server.send_message(msg)
+        result = server.send_message(msg)
         server.quit()
-        print("Debug: Email sent successfully")
+        print(f"Debug: Email sent successfully to {SUPERVISOR_EMAIL}")
+        print("Debug: Check spam/junk folder if not received")
         
         return True
     except Exception as e:

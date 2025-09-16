@@ -577,6 +577,7 @@ def inventory_tab(inventory, products, open_po):
             try:
                 if send_critical_alert_email(len(critical_items)):
                     st.success("✓ Critical alert email sent to supervisor")
+                    st.info("📬 Check spam/junk folder if email not received")
                 else:
                     st.warning("⚠ Email service not configured or failed")
             except Exception as e:
@@ -599,6 +600,7 @@ def inventory_tab(inventory, products, open_po):
                 try:
                     if send_critical_items_report(critical_display):
                         st.success("Report sent!")
+                        st.info("📬 Check spam/junk folder if email not received")
                     else:
                         st.error("Failed to send - check email configuration")
                 except Exception as e:
