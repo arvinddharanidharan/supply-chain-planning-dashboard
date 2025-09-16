@@ -16,10 +16,14 @@ def send_critical_alert_email(critical_count):
     """Send automatic critical alert notification"""
     try:
         # Use Gmail App Password or free email service
-        sender_email = st.secrets.get("EMAIL_USER", "dashboard@company.com")
+        sender_email = st.secrets.get("EMAIL_USER", "")
         sender_password = st.secrets.get("EMAIL_PASSWORD", "")
         
-        if not sender_password:
+        print(f"Debug: Email user: {sender_email[:5]}...")
+        print(f"Debug: Password configured: {bool(sender_password)}")
+        
+        if not sender_email or not sender_password:
+            print("Debug: Missing email credentials")
             return False
             
         msg = MIMEMultipart()
@@ -28,34 +32,40 @@ def send_critical_alert_email(critical_count):
         msg['Subject'] = f"CRITICAL ALERT: {critical_count} Items at Critical Stock Levels"
         
         body = f"""
-        URGENT: Critical Stock Alert
-        
-        {critical_count} items have reached critical stock levels and require immediate attention.
-        
-        Please log into the Supply Chain Dashboard to review and take action.
-        
-        This is an automated alert from the Supply Chain Planning Dashboard.
+URGENT: Critical Stock Alert
+
+{critical_count} items have reached critical stock levels and require immediate attention.
+
+Please log into the Supply Chain Dashboard to review and take action.
+
+This is an automated alert from the Supply Chain Planning Dashboard.
         """
         
         msg.attach(MIMEText(body, 'plain'))
         
+        print("Debug: Connecting to SMTP server...")
         server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
         server.starttls()
+        print("Debug: Logging in...")
         server.login(sender_email, sender_password)
+        print("Debug: Sending message...")
         server.send_message(msg)
         server.quit()
+        print("Debug: Email sent successfully")
         
         return True
-    except:
+    except Exception as e:
+        print(f"Debug: Email error: {str(e)}")
         return False
 
 def send_critical_items_report(critical_items_df):
     """Send critical items list as attachment"""
     try:
-        sender_email = st.secrets.get("EMAIL_USER", "dashboard@company.com")
+        sender_email = st.secrets.get("EMAIL_USER", "")
         sender_password = st.secrets.get("EMAIL_PASSWORD", "")
         
-        if not sender_password:
+        if not sender_email or not sender_password:
+            print("Debug: Missing email credentials for report")
             return False
             
         msg = MIMEMultipart()

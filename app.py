@@ -574,8 +574,13 @@ def inventory_tab(inventory, products, open_po):
         
         # Auto-send alert email (only once per session)
         if 'critical_alert_sent' not in st.session_state:
-            if send_critical_alert_email(len(critical_items)):
-                st.success("✓ Critical alert email sent to supervisor")
+            try:
+                if send_critical_alert_email(len(critical_items)):
+                    st.success("✓ Critical alert email sent to supervisor")
+                else:
+                    st.warning("⚠ Email service not configured or failed")
+            except Exception as e:
+                st.error(f"Email error: {str(e)}")
             st.session_state.critical_alert_sent = True
         
         col1, col2 = st.columns([3, 1])
@@ -587,14 +592,17 @@ def inventory_tab(inventory, products, open_po):
                 st.dataframe(critical_display, use_container_width=True)
         
         with col2:
-            if st.button("📧 Email Report", help="Send critical items report to supervisor"):
+            if st.button("Email Report", help="Send critical items report to supervisor"):
                 critical_display = critical_items[['product_id', 'current_stock', 'safety_stock', 'rop']].copy()
                 critical_display['shortage'] = critical_display['safety_stock'] - critical_display['current_stock']
                 
-                if send_critical_items_report(critical_display):
-                    st.success("Report sent!")
-                else:
-                    st.error("Failed to send")
+                try:
+                    if send_critical_items_report(critical_display):
+                        st.success("Report sent!")
+                    else:
+                        st.error("Failed to send - check email configuration")
+                except Exception as e:
+                    st.error(f"Email error: {str(e)}")
     
     if len(low_items) > 0:
         st.warning(f"WARNING: {len(low_items)} items are at low stock levels")
