@@ -58,6 +58,15 @@ st.markdown("""
         transition: all 0.3s ease;
     }
     
+    /* Fix metric tile background in dark theme */
+    [data-theme="dark"] .stMetric {
+        background-color: #374151 !important;
+    }
+    
+    [data-theme="dark"] div[data-testid="metric-container"] {
+        background-color: #374151 !important;
+    }
+    
     /* Different colors for dark theme */
     [data-theme="dark"] .stMetric {
         background-color: #374151 !important;
@@ -69,6 +78,11 @@ st.markdown("""
         background-color: #374151 !important;
         border-color: #4b5563 !important;
         color: #f9fafb !important;
+    }
+    
+    /* Force dark background on metric tiles */
+    [data-theme="dark"] div[data-testid="metric-container"] > div {
+        background-color: #374151 !important;
     }
     
     [data-theme="dark"] div[data-testid="metric-container"] label,
@@ -601,7 +615,7 @@ def inventory_tab(inventory, products, open_po):
                 try:
                     if send_critical_alert_email(len(critical_items)):
                         st.success("✓ Morning critical alert email sent to supervisor")
-                        st.info("📬 Check spam/junk folder if email not received")
+                        st.info("Check spam/junk folder too")
                     else:
                         st.warning("⚠ Email service not configured or failed")
                 except Exception as e:
