@@ -85,6 +85,26 @@ st.markdown("""
         background-color: #374151 !important;
     }
     
+    /* Target the actual metric tile background */
+    [data-theme="dark"] div[data-testid="metric-container"] div[data-testid="stMetricValue"] {
+        background-color: #374151 !important;
+        color: #f9fafb !important;
+    }
+    
+    [data-theme="dark"] div[data-testid="metric-container"] div[data-testid="stMetricLabel"] {
+        background-color: #374151 !important;
+        color: #d1d5db !important;
+    }
+    
+    /* Override Streamlit's default metric styling */
+    [data-theme="dark"] .element-container div[data-testid="metric-container"] {
+        background-color: #374151 !important;
+    }
+    
+    [data-theme="dark"] .stMetric > div > div {
+        background-color: #374151 !important;
+    }
+    
     [data-theme="dark"] div[data-testid="metric-container"] label,
     [data-theme="dark"] div[data-testid="metric-container"] div,
     [data-theme="dark"] div[data-testid="metric-container"] span,
