@@ -572,8 +572,9 @@ def inventory_tab(inventory, products, open_po):
     if len(critical_items) > 0:
         st.error(f"CRITICAL ALERT: {len(critical_items)} items are at critical stock levels!")
         
-        # Auto-send alert email (only once per session)
-        if 'critical_alert_sent' not in st.session_state:
+        # Auto-send alert email (only once when critical items first detected)
+        critical_key = f"critical_alert_{len(critical_items)}"
+        if critical_key not in st.session_state:
             try:
                 if send_critical_alert_email(len(critical_items)):
                     st.success("✓ Critical alert email sent to supervisor")
@@ -582,7 +583,7 @@ def inventory_tab(inventory, products, open_po):
                     st.warning("⚠ Email service not configured or failed")
             except Exception as e:
                 st.error(f"Email error: {str(e)}")
-            st.session_state.critical_alert_sent = True
+            st.session_state[critical_key] = True
         
         col1, col2 = st.columns([3, 1])
         
