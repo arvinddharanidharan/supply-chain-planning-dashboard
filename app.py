@@ -533,14 +533,17 @@ def overview_tab(filtered_orders, inventory, products, suppliers):
         supplier_spend = supplier_spend.sort_values('total_value', ascending=False).head(10)
         
         fig_spend = px.bar(supplier_spend, x='supplier_id', y='total_value',
-                          title="Top 10 Suppliers by Spend",
-                          color='total_value', color_continuous_scale='Viridis')
+                          title="Top 10 Suppliers by Procurement Spend",
+                          color='total_value', color_continuous_scale='Viridis',
+                          labels={'supplier_id': 'Supplier ID', 'total_value': 'Total Spend ($)'})
         fig_spend.update_layout(
             showlegend=False, 
             height=400,
             plot_bgcolor='rgba(0,0,0,0)',
             paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(size=12)
+            font=dict(size=12),
+            xaxis_title="Supplier ID",
+            yaxis_title="Total Procurement Spend ($)"
         )
         st.plotly_chart(fig_spend, use_container_width=True)
     
@@ -550,13 +553,14 @@ def overview_tab(filtered_orders, inventory, products, suppliers):
         colors = {'Critical': '#dc2626', 'Low': '#d97706', 'Normal': '#059669'}
         
         fig_stock = px.pie(values=stock_counts.values, names=stock_counts.index,
-                          title="Stock Status Distribution", hole=0.4,
+                          title="Inventory Stock Status Distribution", hole=0.4,
                           color=stock_counts.index, color_discrete_map=colors)
         fig_stock.update_layout(
             height=400,
             plot_bgcolor='rgba(0,0,0,0)',
             paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(size=12)
+            font=dict(size=12),
+            annotations=[dict(text='Stock<br>Levels', x=0.5, y=0.5, font_size=14, showarrow=False)]
         )
         st.plotly_chart(fig_stock, use_container_width=True)
 
@@ -586,7 +590,7 @@ def inventory_tab(inventory, products, open_po):
                     st.error(f"Email error: {str(e)}")
                 st.session_state[critical_key] = True
         else:
-            st.info(f"🕰 Automatic alerts sent daily at 6:00 AM. Current time: {datetime.now().strftime('%H:%M')}")
+            st.info(f"Automatic alerts sent daily at 6:00 AM. Current time: {datetime.now().strftime('%H:%M')}")
         
         col1, col2 = st.columns([3, 1])
         
@@ -604,7 +608,7 @@ def inventory_tab(inventory, products, open_po):
                 try:
                     if send_critical_items_report(critical_display):
                         st.success("Report sent!")
-                        st.info("📬 Check spam/junk folder if email not received")
+                        st.info("Check spam/junk folder too")
                     else:
                         st.error("Failed to send - check email configuration")
                 except Exception as e:
@@ -647,12 +651,15 @@ def inventory_tab(inventory, products, open_po):
         # Show breakdown by product importance
         abc_counts = inventory.merge(products[['product_id', 'abc_class']], on='product_id')['abc_class'].value_counts()
         fig_abc = px.bar(x=abc_counts.index, y=abc_counts.values,
-                        title="Inventory by ABC Classification",
-                        color=abc_counts.index, color_discrete_sequence=['#dc2626', '#d97706', '#059669'])
+                        title="Product Count by ABC Classification",
+                        color=abc_counts.index, color_discrete_sequence=['#dc2626', '#d97706', '#059669'],
+                        labels={'x': 'ABC Class', 'y': 'Number of Products'})
         fig_abc.update_layout(
             plot_bgcolor='rgba(0,0,0,0)',
             paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(size=12)
+            font=dict(size=12),
+            xaxis_title="ABC Classification (A=High Value, B=Medium, C=Low)",
+            yaxis_title="Number of Products in Inventory"
         )
         st.plotly_chart(fig_abc, use_container_width=True)
     
@@ -662,11 +669,12 @@ def inventory_tab(inventory, products, open_po):
         category_value = inv_category.groupby('category')['inventory_value'].sum().reset_index()
         
         fig_cat = px.pie(category_value, values='inventory_value', names='category',
-                        title="Inventory Value by Category")
+                        title="Inventory Value Distribution by Product Category")
         fig_cat.update_layout(
             plot_bgcolor='rgba(0,0,0,0)',
             paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(size=12)
+            font=dict(size=12),
+            annotations=[dict(text='Total<br>Value', x=0.5, y=0.5, font_size=14, showarrow=False)]
         )
         st.plotly_chart(fig_cat, use_container_width=True)
     
@@ -688,12 +696,15 @@ def inventory_tab(inventory, products, open_po):
     po_status = open_po['status'].value_counts()
     po_colors = {'Pending': '#0ea5e9', 'In Transit': '#d97706', 'Delayed': '#dc2626'}
     fig_po = px.bar(x=po_status.index, y=po_status.values,
-                   title="Purchase Order Status",
-                   color=po_status.index, color_discrete_map=po_colors)
+                   title="Open Purchase Orders by Status",
+                   color=po_status.index, color_discrete_map=po_colors,
+                   labels={'x': 'Order Status', 'y': 'Number of Orders'})
     fig_po.update_layout(
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(size=12)
+        font=dict(size=12),
+        xaxis_title="Purchase Order Status",
+        yaxis_title="Number of Open Orders"
     )
     st.plotly_chart(fig_po, use_container_width=True)
 
@@ -716,18 +727,21 @@ def suppliers_tab(filtered_orders, suppliers, open_po):
     fig_matrix = px.scatter(supplier_perf, x='avg_lead_time', y='avg_defect_rate',
                            size='total_spend', color='otd_rate',
                            hover_data=['supplier_id'],
-                           title="Supplier Performance Matrix",
+                           title="Supplier Performance Analysis Matrix",
                            labels={'avg_lead_time': 'Average Lead Time (days)',
                                   'avg_defect_rate': 'Average Defect Rate (%)',
-                                  'otd_rate': 'On-Time Delivery %'})
+                                  'otd_rate': 'On-Time Delivery %',
+                                  'total_spend': 'Total Spend ($)'})
     
-    fig_matrix.add_annotation(text="TARGET: Best suppliers: bottom-left quadrant",
+    fig_matrix.add_annotation(text="BEST PERFORMANCE: Bottom-left (Low lead time + Low defects)",
                              xref="paper", yref="paper", x=0.02, y=0.98,
-                             showarrow=False, font=dict(size=12))
+                             showarrow=False, font=dict(size=11, color="green"))
     fig_matrix.update_layout(
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(size=12)
+        font=dict(size=12),
+        xaxis_title="Average Lead Time (days) → Lower is Better",
+        yaxis_title="Average Defect Rate (%) → Lower is Better"
     )
     st.plotly_chart(fig_matrix, use_container_width=True)
     
@@ -838,13 +852,17 @@ def compliance_tab(filtered_orders):
     
     fig_compliance = px.bar(compliance_by_category, x='category', 
                            y=['mrp_compliance', 'setup_compliance'],
-                           title="Compliance Rates by Category",
+                           title="Process Compliance Rates by Product Category",
                            barmode='group',
-                           color_discrete_sequence=['#0ea5e9', '#059669'])
+                           color_discrete_sequence=['#0ea5e9', '#059669'],
+                           labels={'category': 'Product Category', 'value': 'Compliance Rate (%)', 'variable': 'Process Type'})
     fig_compliance.update_layout(
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(size=12)
+        font=dict(size=12),
+        xaxis_title="Product Category",
+        yaxis_title="Compliance Rate (%) → Higher is Better",
+        legend_title="Process Type"
     )
     st.plotly_chart(fig_compliance, use_container_width=True)
 
@@ -879,11 +897,13 @@ def forecast_tab(filtered_orders, products):
     fig_forecast.add_trace(go.Scatter(x=forecast_data['date'], y=forecast_data['forecast'],
                                      mode='lines', name='Forecast', line=dict(color='#dc2626', dash='dash', width=3)))
     fig_forecast.update_layout(
-        title="Demand vs Forecast", 
+        title="Actual Demand vs Forecast Accuracy Over Time", 
         height=400,
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
         font=dict(size=12),
+        xaxis_title="Date",
+        yaxis_title="Demand Quantity (Units)",
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
     st.plotly_chart(fig_forecast, use_container_width=True)
