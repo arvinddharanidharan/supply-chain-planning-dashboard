@@ -383,6 +383,22 @@ def create_dashboard_controls(orders, suppliers, products):
     # Actually apply the theme the user selected
     if theme_mode == "Dark Mode":
         st.markdown('<script>document.body.setAttribute("data-theme", "dark");</script>', unsafe_allow_html=True)
+        # Force metric styling for dark theme
+        st.markdown("""
+        <style>
+        div[data-testid="metric-container"] {
+            background-color: #374151 !important;
+            color: #f9fafb !important;
+            border: 1px solid #4b5563 !important;
+            border-radius: 8px !important;
+            padding: 1rem !important;
+        }
+        div[data-testid="metric-container"] * {
+            background-color: #374151 !important;
+            color: #f9fafb !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
     elif theme_mode == "Light Mode":
         st.markdown('<script>document.body.removeAttribute("data-theme");</script>', unsafe_allow_html=True)
     
