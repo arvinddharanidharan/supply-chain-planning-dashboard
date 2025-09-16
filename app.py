@@ -86,6 +86,24 @@ st.markdown("""
         color: #d1d5db !important;
     }
     
+    /* Fix all metric text elements in dark mode */
+    [data-theme="dark"] div[data-testid="metric-container"] * {
+        color: #f9fafb !important;
+    }
+    
+    [data-theme="dark"] .stMetric > div {
+        color: #f9fafb !important;
+    }
+    
+    [data-theme="dark"] .stMetric label {
+        color: #d1d5db !important;
+    }
+    
+    [data-theme="dark"] .stMetric [data-testid="metric-container"] {
+        background-color: #374151 !important;
+        color: #f9fafb !important;
+    }
+    
     /* Use colors that everyone can see clearly */
     .metric-card {
         background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
@@ -1026,6 +1044,15 @@ def main():
     }
     
     [data-theme="dark"] .stDateInput label {
+        color: #f9fafb !important;
+    }
+    
+    /* Ensure metric values and deltas are visible */
+    [data-theme="dark"] div[data-testid="metric-container"] > div > div {
+        color: #f9fafb !important;
+    }
+    
+    [data-theme="dark"] div[data-testid="metric-container"] svg {
         color: #f9fafb !important;
     }
     </style>
