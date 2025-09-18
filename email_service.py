@@ -19,14 +19,18 @@ def is_morning_alert_time():
     return current_time.hour == 6 and current_time.minute == 0
 
 def send_critical_alert_email(critical_count):
-    """Send automatic critical alert notification"""
+    """Send automatic critical alert notification with rate limiting"""
     try:
-        # Use Gmail App Password or free email service
+        # Check if we've sent too many emails today
+        today_key = f"email_count_{datetime.now().strftime('%Y%m%d')}"
+        email_count = st.session_state.get(today_key, 0)
+        
+        if email_count >= 10:  # Limit to 10 emails per day
+            print("Debug: Daily email limit reached (10/day)")
+            return False
+            
         sender_email = st.secrets.get("EMAIL_USER", "")
         sender_password = st.secrets.get("EMAIL_PASSWORD", "")
-        
-        print(f"Debug: Email user: {sender_email[:5]}...")
-        print(f"Debug: Password configured: {bool(sender_password)}")
         
         if not sender_email or not sender_password:
             print("Debug: Missing email credentials")
@@ -49,25 +53,43 @@ This is an automated alert from the Supply Chain Planning Dashboard.
         
         msg.attach(MIMEText(body, 'plain'))
         
-        print("Debug: Connecting to SMTP server...")
         server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
         server.starttls()
-        print("Debug: Logging in...")
         server.login(sender_email, sender_password)
-        print("Debug: Sending message...")
-        result = server.send_message(msg)
+        server.send_message(msg)
         server.quit()
-        print(f"Debug: Email sent successfully to {SUPERVISOR_EMAIL}")
-        print("Debug: Check spam/junk folder if not received")
+        
+        # Update email count
+        st.session_state[today_key] = email_count + 1
+        print(f"Debug: Email sent successfully ({email_count + 1}/10 today)")
         
         return True
+    except smtplib.SMTPAuthenticationError:
+        print("Debug: Gmail authentication failed - check App Password")
+        return False
+    except smtplib.SMTPRecipientsRefused:
+        print("Debug: Recipient email rejected")
+        return False
+    except smtplib.SMTPSenderRefused:
+        print("Debug: Sender blocked - likely hit daily limit (150+ emails)")
+        return False
     except Exception as e:
         print(f"Debug: Email error: {str(e)}")
+        if "quota" in str(e).lower() or "limit" in str(e).lower():
+            print("Debug: Gmail daily sending limit exceeded")
         return False
 
 def send_critical_items_report(critical_items_df):
-    """Send critical items list as attachment"""
+    """Send critical items list as attachment with rate limiting"""
     try:
+        # Check daily email limit
+        today_key = f"email_count_{datetime.now().strftime('%Y%m%d')}"
+        email_count = st.session_state.get(today_key, 0)
+        
+        if email_count >= 10:
+            print("Debug: Daily email limit reached for reports")
+            return False
+            
         sender_email = st.secrets.get("EMAIL_USER", "")
         sender_password = st.secrets.get("EMAIL_PASSWORD", "")
         
@@ -81,13 +103,13 @@ def send_critical_items_report(critical_items_df):
         msg['Subject'] = "Critical Items Report - Immediate Action Required"
         
         body = f"""
-        Critical Items Report
-        
-        Please find attached the detailed list of {len(critical_items_df)} items at critical stock levels.
-        
-        Immediate action required to prevent stockouts.
-        
-        Supply Chain Planning Dashboard
+Critical Items Report
+
+Please find attached the detailed list of {len(critical_items_df)} items at critical stock levels.
+
+Immediate action required to prevent stockouts.
+
+Supply Chain Planning Dashboard
         """
         
         msg.attach(MIMEText(body, 'plain'))
@@ -112,6 +134,14 @@ def send_critical_items_report(critical_items_df):
         server.send_message(msg)
         server.quit()
         
+        # Update email count
+        st.session_state[today_key] = email_count + 1
+        print(f"Debug: Report sent successfully ({email_count + 1}/10 today)")
+        
         return True
-    except:
+    except smtplib.SMTPSenderRefused as e:
+        print(f"Debug: Gmail blocked sender - likely hit daily limit: {str(e)}")
+        return False
+    except Exception as e:
+        print(f"Debug: Report email error: {str(e)}")
         return False

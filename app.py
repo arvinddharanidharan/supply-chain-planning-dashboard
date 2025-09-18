@@ -736,12 +736,29 @@ def inventory_tab(inventory, products, open_po):
                         st.success("✓ Morning critical alert email sent to supervisor")
                         st.info("Check spam/junk folder too")
                     else:
-                        st.warning("⚠ Email service not configured or failed")
+                        st.warning("⚠ Email failed - likely hit Gmail daily limit (150+ emails)")
+                        st.info("Gmail free accounts are limited to ~100-150 emails per day")
                 except Exception as e:
                     st.error(f"Email error: {str(e)}")
                 st.session_state[critical_key] = True
         else:
             st.info(f"Automatic alerts sent daily at 6:00 AM. Current time: {datetime.now().strftime('%H:%M')}")
+            
+            # Show email status
+            today_key = f"email_count_{datetime.now().strftime('%Y%m%d')}"
+            email_count = st.session_state.get(today_key, 0)
+            if email_count >= 10:
+                st.warning(f"⚠ Daily email limit reached ({email_count}/10)")
+            elif email_count > 0:
+                st.info(f"📧 Emails sent today: {email_count}/10")
+            
+            # Show email status
+            today_key = f"email_count_{datetime.now().strftime('%Y%m%d')}"
+            email_count = st.session_state.get(today_key, 0)
+            if email_count >= 10:
+                st.warning(f"⚠ Daily email limit reached ({email_count}/10)")
+            elif email_count > 0:
+                st.info(f"📧 Emails sent today: {email_count}/10")
         
         col1, col2 = st.columns([3, 1])
         
@@ -761,9 +778,12 @@ def inventory_tab(inventory, products, open_po):
                         st.success("Report sent!")
                         st.info("Check spam/junk folder too")
                     else:
-                        st.error("Failed to send - check email configuration")
+                        st.error("Failed to send - Gmail daily limit exceeded (150+ emails)")
+                        st.info("Wait 24 hours or use a different email service")
                 except Exception as e:
                     st.error(f"Email error: {str(e)}")
+                    if "quota" in str(e).lower() or "limit" in str(e).lower():
+                        st.info("Gmail has blocked further emails due to daily limit")
     
     if len(low_items) > 0:
         st.warning(f"WARNING: {len(low_items)} items are at low stock levels")
