@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  etl-pipeline:
+    build: .
+    environment:
+      - DB_HOST=ep-raspy-unit-a9b1l5l9-pooler.gwc.azure.neon.tech
+      - DB_NAME=neondb
+      - DB_USER=neondb_owner
+      - DB_PASSWORD=npg_UfcYJMEy9W7o
+      - DB_PORT=5432
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - scheduler
+
+  scheduler:
+    image: mcuadros/ofelia:latest
+    command: daemon --docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      ofelia.job-run.etl-daily.schedule: "0 6 * * *"
+      ofelia.job-run.etl-daily.container: "supply-chain-planning-dashboard_etl-pipeline_1"

@@ -316,18 +316,21 @@ st.markdown("""
 @st.cache_data
 def load_data():
     try:
-        orders = pd.read_csv('data/orders.csv', parse_dates=['order_date', 'planned_delivery', 'delivery_date'])
-        inventory = pd.read_csv('data/inventory.csv')
-        products = pd.read_csv('data/products.csv')
-        suppliers = pd.read_csv('data/suppliers.csv')
+        # Try loading from database first
+        from database import load_data_from_db
+        orders, inventory, products, suppliers = load_data_from_db()
+        
+        if orders is None:
+            st.error("Database connection failed. Please check configuration.")
+            st.stop()
         
         # Create sample data for current open orders
         open_po = generate_open_purchase_orders(orders, suppliers)
         open_co = generate_open_customer_orders(products)
         
         return orders, inventory, products, suppliers, open_po, open_co
-    except FileNotFoundError:
-        st.error("Data files not found. Please run data_generator.py first.")
+    except Exception as e:
+        st.error(f"Data loading failed: {str(e)}")
         st.stop()
 
 def generate_open_purchase_orders(orders, suppliers):
