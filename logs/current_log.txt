@@ -1,8 +1,3 @@
-2025-09-23 14:51:16,340 - INFO - Generated 47 orders, 100 inventory items
-2025-09-23 14:51:16,340 - INFO - Creating database tables
-2025-09-23 14:51:18,094 - INFO - Loading data to database
-2025-09-23 14:51:21,224 - INFO - ETL pipeline completed successfully
-2025-09-23 14:51:21,249 - INFO - Data backup saved to CSV files
 2025-09-23 14:11:08,328 - INFO - Starting ETL pipeline
 2025-09-23 14:11:08,328 - INFO - Generating incremental data
 2025-09-23 14:11:08,348 - INFO - Generated 8 orders, 100 inventory items
@@ -33,3 +28,8 @@
 2025-09-23 17:14:10,941 - INFO - Generated 11 orders, 100 inventory items
 2025-09-23 17:14:10,941 - INFO - Creating database tables
 2025-09-23 17:14:11,385 - ERROR - Failed to create database tables, saving to CSV
+2025-09-23 15:36:48,698 - INFO - Starting ETL pipeline
+2025-09-23 15:36:48,698 - INFO - Generating incremental data
+2025-09-23 15:36:48,722 - INFO - Generated 14 orders, 100 inventory items
+2025-09-23 15:36:48,722 - INFO - CI environment detected, saving to CSV only
+2025-09-23 15:36:48,748 - INFO - ETL pipeline completed successfully (CSV mode)
