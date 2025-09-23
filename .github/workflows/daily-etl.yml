@@ -36,7 +36,7 @@ jobs:
         DB_PORT: ${{ secrets.DB_PORT }}
       run: |
         echo "Running automated ETL pipeline..."
-        python etl_data_generator.py
+        python run_etl.py
         echo "ETL completed. Data files updated."
         
     - name: Show data stats
