@@ -271,11 +271,13 @@ def save_to_csv(orders_df, inventory_df, suppliers_df, products_df):
     
     # Append new orders to existing data
     if os.path.exists('data/orders.csv'):
-        existing_orders = pd.read_csv('data/orders.csv')
+        existing_orders = pd.read_csv('data/orders.csv', parse_dates=['order_date', 'planned_delivery', 'delivery_date'])
         combined_orders = pd.concat([existing_orders, orders_df], ignore_index=True)
         combined_orders.drop_duplicates(subset=['order_id'], keep='last').to_csv('data/orders.csv', index=False)
+        print(f"Total orders after append: {len(combined_orders)}")
     else:
         orders_df.to_csv('data/orders.csv', index=False)
+        print(f"Initial orders file created with {len(orders_df)} orders")
     
     # Update inventory (replace with latest)
     inventory_df.to_csv('data/inventory.csv', index=False)

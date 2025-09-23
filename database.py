@@ -130,9 +130,8 @@ def load_data_to_db(orders_df, inventory_df, suppliers_df, products_df):
         db_url = f"postgresql://{st.secrets.get('DB_USER', '')}:{st.secrets.get('DB_PASSWORD', '')}@{st.secrets.get('DB_HOST', '')}:{st.secrets.get('DB_PORT', '5432')}/{st.secrets.get('DB_NAME', '')}"
         engine = create_engine(db_url)
         
-        # Clear existing data (for daily refresh)
+        # Only clear current state tables, keep historical orders
         with engine.begin() as conn:
-            conn.execute(text("DELETE FROM orders WHERE order_date >= CURRENT_DATE - INTERVAL '30 days'"))
             conn.execute(text("DELETE FROM inventory"))
             conn.execute(text("DELETE FROM suppliers"))
             conn.execute(text("DELETE FROM products"))
