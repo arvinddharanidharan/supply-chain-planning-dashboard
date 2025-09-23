@@ -313,24 +313,34 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-@st.cache_data
+@st.cache_data(ttl=60)  # Cache for 60 seconds only
 def load_data():
     try:
         # Try loading from database first
         from database import load_data_from_db
         orders, inventory, products, suppliers = load_data_from_db()
         
-        if orders is None:
-            st.error("Database connection failed. Please check configuration.")
-            st.stop()
+        if orders is not None:
+            # Database load successful
+            open_po = generate_open_purchase_orders(orders, suppliers)
+            open_co = generate_open_customer_orders(products)
+            return orders, inventory, products, suppliers, open_po, open_co
+    except Exception as e:
+        pass  # Fall through to CSV fallback
+    
+    # Fallback to CSV files
+    try:
+        orders = pd.read_csv('data/orders.csv', parse_dates=['order_date', 'planned_delivery', 'delivery_date', 'created_timestamp'])
+        inventory = pd.read_csv('data/inventory.csv', parse_dates=['updated_timestamp'])
+        products = pd.read_csv('data/products.csv', parse_dates=['updated_timestamp'])
+        suppliers = pd.read_csv('data/suppliers.csv', parse_dates=['updated_timestamp'])
         
-        # Create sample data for current open orders
         open_po = generate_open_purchase_orders(orders, suppliers)
         open_co = generate_open_customer_orders(products)
         
         return orders, inventory, products, suppliers, open_po, open_co
     except Exception as e:
-        st.error(f"Data loading failed: {str(e)}")
+        st.error(f"Failed to load data from both database and CSV files: {str(e)}")
         st.stop()
 
 def generate_open_purchase_orders(orders, suppliers):
@@ -390,7 +400,23 @@ def generate_open_customer_orders(products):
 
 def create_dashboard_controls(orders, suppliers, products):
     """Build the filter controls in the main layout"""
-    st.markdown(f"#### {display_icon('controls', 20)} Filters", unsafe_allow_html=True)
+    st.markdown(f"#### {display_icon('controls', 20)} Dashboard Controls", unsafe_allow_html=True)
+    
+    # Add refresh button and data timestamp
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        if st.button("Refresh Data", help="Clear cache and reload latest data"):
+            st.cache_data.clear()
+            st.rerun()
+    
+    with col2:
+        try:
+            latest_order = orders['created_timestamp'].max() if 'created_timestamp' in orders.columns else orders['order_date'].max()
+            st.caption(f"Data updated: {latest_order.strftime('%H:%M:%S')}")
+        except:
+            st.caption("Data timestamp unavailable")
+    
+    st.markdown("#### Filters")
     
     # Let users switch between light and dark themes
     theme_mode = st.selectbox(
@@ -1310,7 +1336,13 @@ def main():
             st.warning("No data matches the selected filters. Showing all data.")
             filtered_orders = orders
         else:
-            st.success(f"Analyzing {len(filtered_orders):,} orders from {len(filtered_orders['supplier_id'].unique())} suppliers")
+            # Show current data stats with timestamp
+            unique_suppliers = len(filtered_orders['supplier_id'].unique())
+            try:
+                latest_update = filtered_orders['created_timestamp'].max() if 'created_timestamp' in filtered_orders.columns else filtered_orders['order_date'].max()
+                st.success(f"Analyzing {len(filtered_orders):,} orders from {unique_suppliers} suppliers (Last update: {latest_update.strftime('%H:%M:%S')})")
+            except:
+                st.success(f"Analyzing {len(filtered_orders):,} orders from {unique_suppliers} suppliers")
         
         # Create the main tabs for different sections with custom styling
         st.markdown("""
