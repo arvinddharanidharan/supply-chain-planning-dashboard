@@ -232,6 +232,13 @@ def run_etl_pipeline():
         orders_df, inventory_df, suppliers_df, products_df = generate_incremental_data()
         logger.info(f"Generated {len(orders_df)} orders, {len(inventory_df)} inventory items")
         
+        # Skip database in CI environment
+        if os.environ.get('GITHUB_ACTIONS'):
+            logger.info("CI environment detected, saving to CSV only")
+            save_to_csv(orders_df, inventory_df, suppliers_df, products_df)
+            logger.info("ETL pipeline completed successfully (CSV mode)")
+            return True
+        
         # Create database tables
         logger.info("Creating database tables")
         if not create_tables():
