@@ -1,0 +1,50 @@
+name: Hourly ETL Demo
+
+on:
+  schedule:
+    # Run every hour for demo purposes
+    - cron: '0 * * * *'
+  workflow_dispatch:  # Manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  demo-etl:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        pip install pandas numpy datetime
+        
+    - name: Run Demo ETL
+      env:
+        GITHUB_ACTIONS: true
+      run: |
+        echo "🚀 Running hourly ETL demo..."
+        python etl_data_generator.py
+        
+    - name: Show updated metrics
+      run: |
+        echo "📊 Updated Supply Chain Metrics:"
+        echo "================================"
+        tail -3 data/orders.csv | head -2
+        echo "Latest supplier updates:"
+        head -3 data/suppliers.csv | tail -2
+        
+    - name: Commit demo data
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: '⚡ Hourly ETL Demo: $(date "+%Y-%m-%d %H:%M UTC")'
+        file_pattern: 'data/*.csv logs/*.txt'
+        commit_user_name: 'ETL Demo Bot'
+        commit_user_email: 'demo@supply-chain.com'

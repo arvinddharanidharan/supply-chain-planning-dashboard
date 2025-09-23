@@ -1,6 +1,18 @@
 # Supply Chain Planning & KPI Optimization Dashboard
 
+[![Daily ETL Pipeline](https://github.com/arvinddharanidharan/supply-chain-planning-dashboard/actions/workflows/daily-etl.yml/badge.svg)](https://github.com/arvinddharanidharan/supply-chain-planning-dashboard/actions/workflows/daily-etl.yml)
+[![Hourly ETL Demo](https://github.com/arvinddharanidharan/supply-chain-planning-dashboard/actions/workflows/hourly-etl-demo.yml/badge.svg)](https://github.com/arvinddharanidharan/supply-chain-planning-dashboard/actions/workflows/hourly-etl-demo.yml)
+
 A comprehensive supply chain planning cockpit that monitors real business KPIs, process compliance, and provides optimization recommendations for tactical and commercial planning.
+
+## 🤖 Automated ETL Pipeline
+
+This project features **automated data generation** with realistic business scenarios:
+- **Daily ETL**: Runs at 6:00 AM UTC daily
+- **Hourly Demo**: Continuous data updates for demonstration
+- **Realistic Data**: Real supplier names (Bosch, Toyota, Samsung, etc.)
+- **Market Dynamics**: Price fluctuations and performance trends
+- **Data Evolution**: Timestamp-based updates with 6-month retention
 
 ## Project Overview
 
@@ -63,14 +75,37 @@ streamlit run app.py
 # 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. Generate synthetic supply chain data
-python data_generator.py
+# 2. Generate realistic supply chain data
+python etl_data_generator.py
 
 # 3. Launch the planning dashboard
 streamlit run app.py
 
-# 4. Or explore with Jupyter notebooks
+# 4. Run continuous ETL updates
+python run_etl.py --continuous
+
+# 5. Or explore with Jupyter notebooks
 jupyter notebook notebooks/
+```
+
+## 🔄 ETL Automation
+
+### Automated Workflows
+- **GitHub Actions**: Automated daily and hourly data updates
+- **Realistic Evolution**: Supplier performance trends and market fluctuations
+- **Data Retention**: 6-month rolling window for historical analysis
+- **Commit Tracking**: All ETL runs tracked in git history
+
+### Manual ETL Control
+```bash
+# Single ETL run
+python etl_data_generator.py
+
+# Monitor data evolution
+python run_etl.py
+
+# Continuous updates (30-second intervals)
+python run_etl.py --continuous
 ```
 
 ## Dashboard Features

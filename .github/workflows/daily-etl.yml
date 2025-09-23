@@ -24,23 +24,34 @@ jobs:
         
     - name: Install dependencies
       run: |
-        pip install pandas numpy psycopg2-binary sqlalchemy streamlit
+        pip install pandas numpy psycopg2-binary sqlalchemy streamlit datetime
         
     - name: Run ETL Pipeline
       env:
+        GITHUB_ACTIONS: true
         DB_HOST: ${{ secrets.DB_HOST }}
         DB_NAME: ${{ secrets.DB_NAME }}
         DB_USER: ${{ secrets.DB_USER }}
         DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         DB_PORT: ${{ secrets.DB_PORT }}
       run: |
+        echo "Running automated ETL pipeline..."
         python etl_data_generator.py
+        echo "ETL completed. Data files updated."
+        
+    - name: Show data stats
+      run: |
+        echo "📊 Data Statistics After ETL:"
+        echo "Orders: $(wc -l < data/orders.csv) records"
+        echo "Suppliers: $(wc -l < data/suppliers.csv) records"
+        echo "Products: $(wc -l < data/products.csv) records"
+        echo "Inventory: $(wc -l < data/inventory.csv) records"
         
     - name: Commit updated data
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: 'Daily data update $(date)'
+        commit_message: '🤖 Automated ETL: Daily supply chain data update'
         file_pattern: 'data/*.csv logs/*.txt'
-        commit_user_name: 'GitHub Action'
-        commit_user_email: 'action@github.com'
-        commit_author: 'GitHub Action <action@github.com>'
+        commit_user_name: 'Supply Chain ETL Bot'
+        commit_user_email: 'etl-bot@supply-chain.com'
+        commit_author: 'Supply Chain ETL Bot <etl-bot@supply-chain.com>'
