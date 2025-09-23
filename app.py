@@ -754,7 +754,7 @@ def inventory_tab(inventory, products, open_po):
                     st.error(f"Email error: {str(e)}")
                 st.session_state[critical_key] = True
         else:
-            st.info(f"Automatic alerts sent daily at 6:00 AM. Current time: {datetime.now().strftime('%H:%M')}")
+            st.info(f"System alerts sent daily at 6:00 AM. Current time: {datetime.now().strftime('%H:%M')}")
             
             # Show email status
             today_key = f"email_count_{datetime.now().strftime('%Y%m%d')}"

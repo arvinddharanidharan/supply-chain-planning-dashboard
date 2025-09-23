@@ -3,7 +3,7 @@ import pandas as pd
 import streamlit as st
 from datetime import datetime
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 # Free PostgreSQL connection (Neon.tech - 10GB free)
 def get_db_connection():
@@ -30,6 +30,12 @@ def create_tables():
     try:
         cursor = conn.cursor()
         
+        # Drop existing tables to recreate with new schema
+        cursor.execute("DROP TABLE IF EXISTS orders CASCADE")
+        cursor.execute("DROP TABLE IF EXISTS inventory CASCADE")
+        cursor.execute("DROP TABLE IF EXISTS suppliers CASCADE")
+        cursor.execute("DROP TABLE IF EXISTS products CASCADE")
+        
         # Orders table
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS orders (
@@ -50,6 +56,7 @@ def create_tables():
             defect_rate DECIMAL(5,2),
             quality_cost DECIMAL(10,2),
             late_penalty DECIMAL(10,2),
+            created_timestamp TIMESTAMP,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         """)
@@ -65,6 +72,7 @@ def create_tables():
             inventory_value DECIMAL(12,2),
             carrying_cost DECIMAL(10,2),
             stock_status VARCHAR(20),
+            updated_timestamp TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         """)
@@ -76,6 +84,7 @@ def create_tables():
             supplier_name VARCHAR(100),
             lead_time_target INTEGER,
             quality_rating DECIMAL(3,1),
+            updated_timestamp TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         """)
@@ -88,6 +97,7 @@ def create_tables():
             category VARCHAR(50),
             abc_class VARCHAR(10),
             unit_cost DECIMAL(10,2),
+            updated_timestamp TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         """)
@@ -109,10 +119,10 @@ def load_data_to_db(orders_df, inventory_df, suppliers_df, products_df):
         
         # Clear existing data (for daily refresh)
         with engine.begin() as conn:
-            conn.execute("DELETE FROM orders WHERE order_date >= CURRENT_DATE - INTERVAL '30 days'")
-            conn.execute("DELETE FROM inventory")
-            conn.execute("DELETE FROM suppliers")
-            conn.execute("DELETE FROM products")
+            conn.execute(text("DELETE FROM orders WHERE order_date >= CURRENT_DATE - INTERVAL '30 days'"))
+            conn.execute(text("DELETE FROM inventory"))
+            conn.execute(text("DELETE FROM suppliers"))
+            conn.execute(text("DELETE FROM products"))
         
         # Load new data
         orders_df.to_sql('orders', engine, if_exists='append', index=False)

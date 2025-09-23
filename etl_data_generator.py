@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import os
+import logging
 from database import create_tables, load_data_to_db
 
 def generate_incremental_data():
@@ -37,7 +38,8 @@ def generate_incremental_data():
             'supplier_id': supplier_id,
             'supplier_name': f'Supplier {supplier_id}',
             'lead_time_target': adjusted_lead_time,
-            'quality_rating': round(adjusted_quality, 1)
+            'quality_rating': round(adjusted_quality, 1),
+            'updated_timestamp': datetime.now()
         })
     
     suppliers_df = pd.DataFrame(suppliers_data)
@@ -67,7 +69,8 @@ def generate_incremental_data():
             'product_name': f'Product {product_id}',
             'category': category,
             'abc_class': abc_class,
-            'unit_cost': round(unit_cost, 2)
+            'unit_cost': round(unit_cost, 2),
+            'updated_timestamp': datetime.now()
         })
     
     products_df = pd.DataFrame(products_data)
@@ -133,7 +136,8 @@ def generate_incremental_data():
             'setup_compliance': setup_compliance,
             'defect_rate': round(defect_rate, 2),
             'quality_cost': round(quality_cost, 2),
-            'late_penalty': round(late_penalty, 2)
+            'late_penalty': round(late_penalty, 2),
+            'created_timestamp': datetime.now()
         })
     
     orders_df = pd.DataFrame(orders_data)
@@ -177,40 +181,78 @@ def generate_incremental_data():
             'rop': rop,
             'inventory_value': round(inventory_value, 2),
             'carrying_cost': round(carrying_cost, 2),
-            'stock_status': stock_status
+            'stock_status': stock_status,
+            'updated_timestamp': datetime.now()
         })
     
     inventory_df = pd.DataFrame(inventory_data)
     
     return orders_df, inventory_df, suppliers_df, products_df
 
+def setup_logging():
+    """Setup logging with rotation between current and archive logs"""
+    os.makedirs('logs', exist_ok=True)
+    
+    # Archive old logs if current_log.txt is older than 7 days
+    current_log_path = 'logs/current_log.txt'
+    archive_log_path = 'logs/archive_log.txt'
+    
+    if os.path.exists(current_log_path):
+        file_age = datetime.now() - datetime.fromtimestamp(os.path.getmtime(current_log_path))
+        if file_age.days >= 7:
+            # Move current to archive
+            if os.path.exists(archive_log_path):
+                with open(archive_log_path, 'a') as archive, open(current_log_path, 'r') as current:
+                    archive.write(current.read())
+            else:
+                os.rename(current_log_path, archive_log_path)
+            # Clear current log
+            open(current_log_path, 'w').close()
+    
+    # Setup logger
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(current_log_path),
+            logging.StreamHandler()
+        ]
+    )
+    return logging.getLogger(__name__)
+
 def run_etl_pipeline():
-    """Main ETL pipeline function"""
-    print(f"Starting ETL pipeline at {datetime.now()}")
+    """Main ETL pipeline function with comprehensive logging"""
+    logger = setup_logging()
+    
+    logger.info("Starting ETL pipeline")
     
     try:
         # Extract & Transform
+        logger.info("Generating incremental data")
         orders_df, inventory_df, suppliers_df, products_df = generate_incremental_data()
+        logger.info(f"Generated {len(orders_df)} orders, {len(inventory_df)} inventory items")
         
         # Create database tables
+        logger.info("Creating database tables")
         if not create_tables():
-            print("Failed to create database tables, saving to CSV")
+            logger.error("Failed to create database tables, saving to CSV")
             save_to_csv(orders_df, inventory_df, suppliers_df, products_df)
             return False
         
         # Load to database
+        logger.info("Loading data to database")
         if load_data_to_db(orders_df, inventory_df, suppliers_df, products_df):
-            print("ETL pipeline completed successfully")
-            # Also save to CSV as backup
+            logger.info("ETL pipeline completed successfully")
             save_to_csv(orders_df, inventory_df, suppliers_df, products_df)
+            logger.info("Data backup saved to CSV files")
             return True
         else:
-            print("Database load failed, saving to CSV only")
+            logger.error("Database load failed, saving to CSV only")
             save_to_csv(orders_df, inventory_df, suppliers_df, products_df)
             return False
             
     except Exception as e:
-        print(f"ETL pipeline failed: {e}")
+        logger.error(f"ETL pipeline failed: {str(e)}")
         return False
 
 def save_to_csv(orders_df, inventory_df, suppliers_df, products_df):

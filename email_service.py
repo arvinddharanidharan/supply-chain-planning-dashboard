@@ -48,7 +48,7 @@ URGENT: Critical Stock Alert
 
 Please log into the Supply Chain Dashboard to review and take action.
 
-This is an automated alert from the Supply Chain Planning Dashboard.
+This is a system alert from the Supply Chain Planning Dashboard.
         """
         
         msg.attach(MIMEText(body, 'plain'))
