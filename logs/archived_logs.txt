@@ -41,3 +41,8 @@
 2025-09-23 17:13:31,069 - INFO - Generated 11 orders, 100 inventory items
 2025-09-23 17:13:31,069 - INFO - Creating database tables
 2025-09-23 17:13:31,611 - ERROR - Failed to create database tables, saving to CSV
+2025-09-23 17:14:07,624 - INFO - Starting ETL pipeline
+2025-09-23 17:14:07,624 - INFO - Generating incremental data
+2025-09-23 17:14:07,633 - INFO - Generated 10 orders, 100 inventory items
+2025-09-23 17:14:07,633 - INFO - Creating database tables
+2025-09-23 17:14:08,065 - ERROR - Failed to create database tables, saving to CSV
