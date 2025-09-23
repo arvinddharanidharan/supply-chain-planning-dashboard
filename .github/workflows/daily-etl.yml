@@ -41,7 +41,7 @@ jobs:
         
     - name: Show data stats
       run: |
-        echo "📊 Data Statistics After ETL:"
+        echo "Data Statistics After ETL:"
         echo "Orders: $(wc -l < data/orders.csv) records"
         echo "Suppliers: $(wc -l < data/suppliers.csv) records"
         echo "Products: $(wc -l < data/products.csv) records"
@@ -50,8 +50,7 @@ jobs:
     - name: Commit updated data
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: '🤖 Automated ETL: Daily supply chain data update'
+        commit_message: 'Automated ETL: Daily supply chain data update'
         file_pattern: 'data/*.csv logs/*.txt'
-        commit_user_name: 'Supply Chain ETL Bot'
-        commit_user_email: 'etl-bot@supply-chain.com'
-        commit_author: 'Supply Chain ETL Bot <etl-bot@supply-chain.com>'
+        commit_user_name: 'ETL Pipeline'
+        commit_user_email: 'etl@supply-chain-dashboard.com'

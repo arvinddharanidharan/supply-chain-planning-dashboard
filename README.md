@@ -1,11 +1,10 @@
 # Supply Chain Planning & KPI Optimization Dashboard
 
-[![Daily ETL Pipeline](https://github.com/arvinddharanidharan/supply-chain-planning-dashboard/actions/workflows/daily-etl.yml/badge.svg)](https://github.com/arvinddharanidharan/supply-chain-planning-dashboard/actions/workflows/daily-etl.yml)
-[![Hourly ETL Demo](https://github.com/arvinddharanidharan/supply-chain-planning-dashboard/actions/workflows/hourly-etl-demo.yml/badge.svg)](https://github.com/arvinddharanidharan/supply-chain-planning-dashboard/actions/workflows/hourly-etl-demo.yml)
+[![Automated ETL Pipeline](https://github.com/arvinddharanidharan/supply-chain-planning-dashboard/actions/workflows/daily-etl.yml/badge.svg)](https://github.com/arvinddharanidharan/supply-chain-planning-dashboard/actions/workflows/daily-etl.yml)
 
 A comprehensive supply chain planning cockpit that monitors real business KPIs, process compliance, and provides optimization recommendations for tactical and commercial planning.
 
-## 🤖 Automated ETL Pipeline
+## Automated ETL Pipeline
 
 This project features **automated data generation** with realistic business scenarios:
 - **Daily ETL**: Runs at 6:00 AM UTC daily
@@ -88,7 +87,7 @@ python run_etl.py --continuous
 jupyter notebook notebooks/
 ```
 
-## 🔄 ETL Automation
+## ETL Automation
 
 ### Automated Workflows
 - **GitHub Actions**: Automated daily and hourly data updates

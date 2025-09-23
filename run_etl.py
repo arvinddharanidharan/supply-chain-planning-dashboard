@@ -17,14 +17,14 @@ def run_etl():
                               capture_output=True, text=True, cwd='.')
         
         if result.returncode == 0:
-            print("✅ ETL completed successfully")
+            print("ETL completed successfully")
             print(result.stdout)
         else:
-            print("❌ ETL failed")
+            print("ETL failed")
             print(result.stderr)
             
     except Exception as e:
-        print(f"❌ Error running ETL: {e}")
+        print(f"Error running ETL: {e}")
 
 def show_data_stats():
     """Show current data statistics"""
@@ -42,29 +42,29 @@ def show_data_stats():
                 quality = latest_supplier[3]
                 timestamp = latest_supplier[4].strip()
         
-        print(f"\n📊 Current Data Stats:")
-        print(f"   • Total Orders: {order_count}")
-        print(f"   • Latest Supplier Update: {supplier_name} (Quality: {quality})")
-        print(f"   • Last Updated: {timestamp}")
+        print(f"\nCurrent Data Stats:")
+        print(f"   Total Orders: {order_count}")
+        print(f"   Latest Supplier Update: {supplier_name} (Quality: {quality})")
+        print(f"   Last Updated: {timestamp}")
         
     except Exception as e:
-        print(f"❌ Error reading data stats: {e}")
+        print(f"Error reading data stats: {e}")
 
 if __name__ == "__main__":
-    print("🚀 Supply Chain ETL Runner")
+    print("Supply Chain ETL Runner")
     print("This script will run the ETL pipeline and show data evolution")
     
     # Run ETL once
     run_etl()
     show_data_stats()
     
-    print(f"\n💡 To run ETL continuously, use:")
+    print(f"\nTo run ETL continuously, use:")
     print(f"   python run_etl.py --continuous")
     
     # Check if continuous mode requested
     import sys
     if '--continuous' in sys.argv:
-        print(f"\n🔄 Running in continuous mode (every 30 seconds)")
+        print(f"\nRunning in continuous mode (every 30 seconds)")
         print(f"   Press Ctrl+C to stop")
         
         try:
@@ -73,4 +73,4 @@ if __name__ == "__main__":
                 run_etl()
                 show_data_stats()
         except KeyboardInterrupt:
-            print(f"\n👋 ETL runner stopped")
+            print(f"\nETL runner stopped")
