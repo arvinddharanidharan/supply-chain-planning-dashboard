@@ -330,10 +330,16 @@ def load_data():
     
     # Fallback to CSV files
     try:
-        orders = pd.read_csv('data/orders.csv', parse_dates=['order_date', 'planned_delivery', 'delivery_date', 'created_timestamp'])
-        inventory = pd.read_csv('data/inventory.csv', parse_dates=['updated_timestamp'])
-        products = pd.read_csv('data/products.csv', parse_dates=['updated_timestamp'])
-        suppliers = pd.read_csv('data/suppliers.csv', parse_dates=['updated_timestamp'])
+        orders = pd.read_csv('data/orders.csv')
+        orders['order_date'] = pd.to_datetime(orders['order_date'], errors='coerce')
+        orders['planned_delivery'] = pd.to_datetime(orders['planned_delivery'], errors='coerce')
+        orders['delivery_date'] = pd.to_datetime(orders['delivery_date'], errors='coerce')
+        if 'created_timestamp' in orders.columns:
+            orders['created_timestamp'] = pd.to_datetime(orders['created_timestamp'], errors='coerce')
+        
+        inventory = pd.read_csv('data/inventory.csv')
+        products = pd.read_csv('data/products.csv')
+        suppliers = pd.read_csv('data/suppliers.csv')
         
         open_po = generate_open_purchase_orders(orders, suppliers)
         open_co = generate_open_customer_orders(products)
