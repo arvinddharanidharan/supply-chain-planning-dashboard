@@ -417,10 +417,14 @@ def create_dashboard_controls(orders, suppliers, products):
     
     with col2:
         try:
-            latest_order = orders['created_timestamp'].max() if 'created_timestamp' in orders.columns else orders['order_date'].max()
-            st.caption(f"Data updated: {latest_order.strftime('%H:%M:%S')}")
-        except:
-            st.caption("Data timestamp unavailable")
+            if 'created_timestamp' in orders.columns and not orders['created_timestamp'].isna().all():
+                latest_order = pd.to_datetime(orders['created_timestamp']).max()
+                st.caption(f"Data updated: {latest_order.strftime('%H:%M:%S')}")
+            else:
+                latest_order = pd.to_datetime(orders['order_date']).max()
+                st.caption(f"Latest order: {latest_order.strftime('%Y-%m-%d')}")
+        except Exception as e:
+            st.caption(f"Data loaded: {len(orders)} orders")
     
     st.markdown("#### Filters")
     
