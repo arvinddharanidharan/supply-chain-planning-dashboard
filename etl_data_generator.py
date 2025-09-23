@@ -39,9 +39,10 @@ def generate_incremental_data():
     suppliers_data = []
     for i, supplier_info in enumerate(realistic_suppliers):
         supplier_id = f'SUP_{i+1:03d}'
-        # Add realistic variance to lead times and quality
-        lead_time = max(3, supplier_info['lead_base'] + np.random.randint(-2, 3))
-        quality = min(5.0, max(3.5, supplier_info['quality_base'] + np.random.uniform(-0.2, 0.2)))
+        # Add realistic variance with trending performance over time
+        time_factor = (datetime.now().day % 30) / 30.0  # Monthly performance cycle
+        lead_time = max(3, supplier_info['lead_base'] + np.random.randint(-2, 3) + int(time_factor * 2))
+        quality = min(5.0, max(3.5, supplier_info['quality_base'] + np.random.uniform(-0.3, 0.3) + time_factor * 0.1))
         
         suppliers_data.append({
             'supplier_id': supplier_id,
@@ -71,9 +72,10 @@ def generate_incremental_data():
         category = np.random.choice(categories)
         abc_class = np.random.choice(['A', 'B', 'C'], p=[0.15, 0.25, 0.6])  # More realistic distribution
         
-        # Realistic cost based on category and class
+        # Realistic cost with market fluctuations
         cost_min, cost_max = cost_ranges[category][abc_class]
-        unit_cost = np.random.uniform(cost_min, cost_max)
+        market_factor = 1 + np.random.uniform(-0.05, 0.05)  # ±5% market fluctuation
+        unit_cost = np.random.uniform(cost_min, cost_max) * market_factor
         
         products_data.append({
             'product_id': product_id,
@@ -135,8 +137,8 @@ def generate_incremental_data():
         quality_cost = (defect_rate / 100) * total_value * 0.1 if defect_rate > 0.5 else 0
         late_penalty = max(0, (lead_time - int(supplier['lead_time_target'])) * total_value * 0.001)
         
-        # Generate unique order ID with timestamp
-        timestamp = int(datetime.now().timestamp())
+        # Generate unique order ID with timestamp and microseconds for uniqueness
+        timestamp = int(datetime.now().timestamp() * 1000)  # Include milliseconds
         orders_data.append({
             'order_id': f'ORD_{timestamp}_{i:04d}',
             'supplier_id': supplier['supplier_id'],
@@ -288,45 +290,69 @@ def run_etl_pipeline():
         return False
 
 def save_to_csv(orders_df, inventory_df, suppliers_df, products_df):
-    """Append new data to existing CSV files with business constraints"""
+    """Append new data with proper timestamp-based deduplication"""
     os.makedirs('data', exist_ok=True)
     
-    # Append new orders with data quality checks
+    # Orders: Always append new orders (they have unique IDs with timestamps)
     if os.path.exists('data/orders.csv'):
-        existing_orders = pd.read_csv('data/orders.csv', parse_dates=['order_date', 'planned_delivery', 'delivery_date'])
+        existing_orders = pd.read_csv('data/orders.csv', parse_dates=['order_date', 'planned_delivery', 'delivery_date', 'created_timestamp'])
         
-        # Limit total orders to prevent unlimited growth (keep last 6 months)
+        # Keep last 6 months of data
         cutoff_date = datetime.now() - timedelta(days=180)
         existing_orders = existing_orders[existing_orders['order_date'] >= cutoff_date.strftime('%Y-%m-%d')]
         
         combined_orders = pd.concat([existing_orders, orders_df], ignore_index=True)
+        # Remove duplicates based on order_id only (each order should be unique)
         combined_orders = combined_orders.drop_duplicates(subset=['order_id'], keep='last')
         
-        # Ensure realistic data bounds
-        combined_orders['defect_rate'] = combined_orders['defect_rate'].clip(0, 5)  # Max 5% defect rate
-        combined_orders['lead_time'] = combined_orders['lead_time'].clip(1, 45)  # 1-45 days lead time
+        combined_orders['defect_rate'] = combined_orders['defect_rate'].clip(0, 5)
+        combined_orders['lead_time'] = combined_orders['lead_time'].clip(1, 45)
         
         combined_orders.to_csv('data/orders.csv', index=False)
-        print(f"Total orders after append: {len(combined_orders)} (last 6 months)")
+        print(f"Total orders: {len(combined_orders)} (added {len(orders_df)} new)")
     else:
         orders_df.to_csv('data/orders.csv', index=False)
-        print(f"Initial orders file created with {len(orders_df)} orders")
+        print(f"Initial orders file: {len(orders_df)} orders")
     
-    # Update inventory with realistic bounds
-    inventory_df['current_stock'] = inventory_df['current_stock'].clip(0, 10000)
-    inventory_df['safety_stock'] = inventory_df['safety_stock'].clip(5, 1000)
-    inventory_df.to_csv('data/inventory.csv', index=False)
+    # Inventory: Append historical snapshots, keep latest per product
+    if os.path.exists('data/inventory.csv'):
+        existing_inventory = pd.read_csv('data/inventory.csv', parse_dates=['updated_timestamp'])
+        combined_inventory = pd.concat([existing_inventory, inventory_df], ignore_index=True)
+        # Keep only the latest record per product_id
+        combined_inventory = combined_inventory.sort_values('updated_timestamp').drop_duplicates(subset=['product_id'], keep='last')
+    else:
+        combined_inventory = inventory_df
     
-    # Update suppliers with quality bounds
-    suppliers_df['quality_rating'] = suppliers_df['quality_rating'].clip(3.0, 5.0)
-    suppliers_df['lead_time_target'] = suppliers_df['lead_time_target'].clip(1, 30)
-    suppliers_df.to_csv('data/suppliers.csv', index=False)
+    combined_inventory['current_stock'] = combined_inventory['current_stock'].clip(0, 10000)
+    combined_inventory['safety_stock'] = combined_inventory['safety_stock'].clip(5, 1000)
+    combined_inventory.to_csv('data/inventory.csv', index=False)
     
-    # Update products with cost bounds
-    products_df['unit_cost'] = products_df['unit_cost'].clip(1, 2000)
-    products_df.to_csv('data/products.csv', index=False)
+    # Suppliers: Append historical performance, keep latest per supplier
+    if os.path.exists('data/suppliers.csv'):
+        existing_suppliers = pd.read_csv('data/suppliers.csv', parse_dates=['updated_timestamp'])
+        combined_suppliers = pd.concat([existing_suppliers, suppliers_df], ignore_index=True)
+        # Keep only the latest record per supplier_id
+        combined_suppliers = combined_suppliers.sort_values('updated_timestamp').drop_duplicates(subset=['supplier_id'], keep='last')
+    else:
+        combined_suppliers = suppliers_df
     
-    print(f"Data appended: {len(orders_df)} new orders added with realistic constraints")
+    combined_suppliers['quality_rating'] = combined_suppliers['quality_rating'].clip(3.0, 5.0)
+    combined_suppliers['lead_time_target'] = combined_suppliers['lead_time_target'].clip(1, 30)
+    combined_suppliers.to_csv('data/suppliers.csv', index=False)
+    
+    # Products: Append historical pricing, keep latest per product
+    if os.path.exists('data/products.csv'):
+        existing_products = pd.read_csv('data/products.csv', parse_dates=['updated_timestamp'])
+        combined_products = pd.concat([existing_products, products_df], ignore_index=True)
+        # Keep only the latest record per product_id
+        combined_products = combined_products.sort_values('updated_timestamp').drop_duplicates(subset=['product_id'], keep='last')
+    else:
+        combined_products = products_df
+    
+    combined_products['unit_cost'] = combined_products['unit_cost'].clip(1, 2000)
+    combined_products.to_csv('data/products.csv', index=False)
+    
+    print(f"Data updated: {len(orders_df)} new orders, latest supplier/product/inventory data")
 
 if __name__ == "__main__":
     run_etl_pipeline()
