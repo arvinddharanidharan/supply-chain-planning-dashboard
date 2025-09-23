@@ -9,60 +9,71 @@ def generate_incremental_data():
     """Generate new daily data that builds on existing data"""
     np.random.seed(int(datetime.now().timestamp()))
     
-    # Business-relevant parameters
     current_date = datetime.now().date()
+    n_new_orders = np.random.randint(8, 15)  # Realistic daily order volume
     
-    # Generate new orders (5-15 per day for realistic growth)
-    n_new_orders = np.random.randint(5, 16)
+    # Realistic supplier names and performance
+    realistic_suppliers = [
+        {'name': 'Bosch Manufacturing', 'country': 'Germany', 'lead_base': 7, 'quality_base': 4.5},
+        {'name': 'Toyota Supply Co', 'country': 'Japan', 'lead_base': 5, 'quality_base': 4.8},
+        {'name': 'Foxconn Electronics', 'country': 'China', 'lead_base': 12, 'quality_base': 4.2},
+        {'name': 'Magna International', 'country': 'Canada', 'lead_base': 8, 'quality_base': 4.6},
+        {'name': 'Siemens Industrial', 'country': 'Germany', 'lead_base': 10, 'quality_base': 4.7},
+        {'name': 'Flex Manufacturing', 'country': 'Singapore', 'lead_base': 14, 'quality_base': 4.3},
+        {'name': 'Jabil Circuit', 'country': 'USA', 'lead_base': 6, 'quality_base': 4.4},
+        {'name': 'Celestica Inc', 'country': 'Canada', 'lead_base': 9, 'quality_base': 4.5},
+        {'name': 'Sanmina Corp', 'country': 'USA', 'lead_base': 7, 'quality_base': 4.6},
+        {'name': 'Benchmark Electronics', 'country': 'USA', 'lead_base': 8, 'quality_base': 4.4},
+        {'name': 'Wistron Corp', 'country': 'Taiwan', 'lead_base': 11, 'quality_base': 4.3},
+        {'name': 'Pegatron Corp', 'country': 'Taiwan', 'lead_base': 13, 'quality_base': 4.2},
+        {'name': 'Quanta Computer', 'country': 'Taiwan', 'lead_base': 10, 'quality_base': 4.4},
+        {'name': 'Compal Electronics', 'country': 'Taiwan', 'lead_base': 12, 'quality_base': 4.1},
+        {'name': 'ASE Group', 'country': 'Taiwan', 'lead_base': 9, 'quality_base': 4.5},
+        {'name': 'TSMC Supply', 'country': 'Taiwan', 'lead_base': 6, 'quality_base': 4.8},
+        {'name': 'Samsung Electronics', 'country': 'South Korea', 'lead_base': 8, 'quality_base': 4.7},
+        {'name': 'LG Electronics', 'country': 'South Korea', 'lead_base': 10, 'quality_base': 4.5},
+        {'name': 'Hyundai Mobis', 'country': 'South Korea', 'lead_base': 7, 'quality_base': 4.6},
+        {'name': 'Continental AG', 'country': 'Germany', 'lead_base': 9, 'quality_base': 4.7}
+    ]
     
-    # Supplier performance trends (some suppliers getting better/worse)
-    supplier_trends = {
-        'SUP_001': {'lead_time_factor': 0.95, 'quality_trend': 1.02},  # Improving
-        'SUP_002': {'lead_time_factor': 1.08, 'quality_trend': 0.98},  # Declining
-        'SUP_003': {'lead_time_factor': 1.0, 'quality_trend': 1.0},    # Stable
-    }
-    
-    # Generate suppliers
     suppliers_data = []
-    for i in range(1, 21):
-        supplier_id = f'SUP_{i:03d}'
-        trend = supplier_trends.get(supplier_id, {'lead_time_factor': 1.0, 'quality_trend': 1.0})
-        
-        base_lead_time = np.random.randint(5, 21)
-        adjusted_lead_time = int(base_lead_time * trend['lead_time_factor'])
-        
-        base_quality = np.random.uniform(3.5, 5.0)
-        adjusted_quality = min(5.0, base_quality * trend['quality_trend'])
+    for i, supplier_info in enumerate(realistic_suppliers):
+        supplier_id = f'SUP_{i+1:03d}'
+        # Add realistic variance to lead times and quality
+        lead_time = max(3, supplier_info['lead_base'] + np.random.randint(-2, 3))
+        quality = min(5.0, max(3.5, supplier_info['quality_base'] + np.random.uniform(-0.2, 0.2)))
         
         suppliers_data.append({
             'supplier_id': supplier_id,
-            'supplier_name': f'Supplier {supplier_id}',
-            'lead_time_target': adjusted_lead_time,
-            'quality_rating': round(adjusted_quality, 1),
+            'supplier_name': supplier_info['name'],
+            'lead_time_target': lead_time,
+            'quality_rating': round(quality, 1),
             'updated_timestamp': datetime.now()
         })
     
     suppliers_df = pd.DataFrame(suppliers_data)
     
-    # Generate products with seasonal demand patterns
+    # Generate realistic products with proper cost structure
     products_data = []
     categories = ['Electronics', 'Automotive', 'Industrial', 'Consumer Goods', 'Raw Materials']
+    
+    # Realistic cost ranges by category
+    cost_ranges = {
+        'Electronics': {'A': (200, 800), 'B': (50, 200), 'C': (10, 50)},
+        'Automotive': {'A': (150, 600), 'B': (40, 150), 'C': (8, 40)},
+        'Industrial': {'A': (300, 1000), 'B': (75, 300), 'C': (15, 75)},
+        'Consumer Goods': {'A': (100, 400), 'B': (25, 100), 'C': (5, 25)},
+        'Raw Materials': {'A': (50, 200), 'B': (15, 50), 'C': (3, 15)}
+    }
     
     for i in range(1, 101):
         product_id = f'PROD_{i:03d}'
         category = np.random.choice(categories)
+        abc_class = np.random.choice(['A', 'B', 'C'], p=[0.15, 0.25, 0.6])  # More realistic distribution
         
-        # ABC classification based on value
-        abc_weights = [0.2, 0.3, 0.5]  # 20% A, 30% B, 50% C
-        abc_class = np.random.choice(['A', 'B', 'C'], p=abc_weights)
-        
-        # Cost varies by ABC class
-        if abc_class == 'A':
-            unit_cost = np.random.uniform(100, 500)
-        elif abc_class == 'B':
-            unit_cost = np.random.uniform(50, 150)
-        else:
-            unit_cost = np.random.uniform(10, 75)
+        # Realistic cost based on category and class
+        cost_min, cost_max = cost_ranges[category][abc_class]
+        unit_cost = np.random.uniform(cost_min, cost_max)
         
         products_data.append({
             'product_id': product_id,
@@ -95,29 +106,34 @@ def generate_incremental_data():
         else:
             delivery_date = planned_delivery - timedelta(days=np.random.randint(0, 2))
         
-        # Quantity based on ABC class
+        # Realistic quantity based on ABC class and category
         if product['abc_class'] == 'A':
-            quantity = np.random.randint(50, 200)
+            quantity = np.random.randint(25, 150)  # High-value items ordered in smaller quantities
         elif product['abc_class'] == 'B':
-            quantity = np.random.randint(100, 500)
+            quantity = np.random.randint(75, 400)
         else:
-            quantity = np.random.randint(200, 1000)
+            quantity = np.random.randint(150, 800)  # Low-value items in bulk
         
         # Calculate costs
         total_value = quantity * product['unit_cost']
         lead_time = (delivery_date - order_date).days
         
-        # Compliance based on supplier quality
-        mrp_compliance = 'Compliant' if np.random.random() < 0.85 else 'Non-Compliant'
-        setup_compliance = 'Compliant' if np.random.random() < 0.80 else 'Non-Compliant'
+        # Realistic compliance rates based on supplier quality
+        compliance_rate = 0.75 + (supplier['quality_rating'] - 3.5) * 0.1  # Better suppliers = higher compliance
+        mrp_compliance = 'Compliant' if np.random.random() < compliance_rate else 'Non-Compliant'
+        setup_compliance = 'Compliant' if np.random.random() < (compliance_rate + 0.05) else 'Non-Compliant'
         
-        # Defect rate inversely related to supplier quality
-        base_defect_rate = max(0, 5 - supplier['quality_rating'])
-        defect_rate = np.random.exponential(base_defect_rate)
+        # Realistic defect rate (0-3% for most suppliers)
+        if supplier['quality_rating'] >= 4.5:
+            defect_rate = np.random.uniform(0, 0.8)  # Excellent suppliers
+        elif supplier['quality_rating'] >= 4.0:
+            defect_rate = np.random.uniform(0, 1.5)  # Good suppliers
+        else:
+            defect_rate = np.random.uniform(0.5, 3.0)  # Average suppliers
         
-        # Quality costs
-        quality_cost = defect_rate * total_value * 0.001 if defect_rate > 1 else 0
-        late_penalty = max(0, (lead_time - int(supplier['lead_time_target'])) * total_value * 0.0005)
+        # Realistic quality costs and penalties
+        quality_cost = (defect_rate / 100) * total_value * 0.1 if defect_rate > 0.5 else 0
+        late_penalty = max(0, (lead_time - int(supplier['lead_time_target'])) * total_value * 0.001)
         
         # Generate unique order ID with timestamp
         timestamp = int(datetime.now().timestamp())
@@ -147,22 +163,28 @@ def generate_incremental_data():
     # Generate inventory with dynamic stock levels
     inventory_data = []
     for _, product in products_df.iterrows():
-        # Stock levels based on recent demand
+        # Realistic stock levels based on ABC class and category
         if product['abc_class'] == 'A':
-            current_stock = np.random.randint(50, 500)
-            safety_stock = np.random.randint(20, 100)
+            current_stock = np.random.randint(30, 300)  # Lower stock for expensive items
+            safety_stock = np.random.randint(10, 50)
         elif product['abc_class'] == 'B':
-            current_stock = np.random.randint(100, 800)
-            safety_stock = np.random.randint(50, 200)
+            current_stock = np.random.randint(80, 600)
+            safety_stock = np.random.randint(25, 120)
         else:
-            current_stock = np.random.randint(200, 1500)
-            safety_stock = np.random.randint(100, 400)
+            current_stock = np.random.randint(150, 1200)
+            safety_stock = np.random.randint(50, 250)
         
-        # EOQ calculation (simplified)
-        eoq = int(np.sqrt(2 * 1000 * product['unit_cost']) * np.random.uniform(0.8, 1.2))
+        # Realistic EOQ based on demand and cost
+        annual_demand = np.random.randint(500, 5000)
+        ordering_cost = 50  # Fixed ordering cost
+        carrying_cost_rate = 0.20  # 20% carrying cost
+        eoq = int(np.sqrt(2 * annual_demand * ordering_cost / (product['unit_cost'] * carrying_cost_rate)))
+        eoq = max(10, min(eoq, 1000))  # Realistic bounds
         
-        # Reorder point
-        rop = safety_stock + np.random.randint(10, 50)
+        # Reorder point based on lead time demand
+        avg_daily_demand = annual_demand / 365
+        avg_lead_time = 10  # Average lead time
+        rop = int(avg_daily_demand * avg_lead_time) + safety_stock
         
         # Stock status
         if current_stock < safety_stock:
@@ -173,7 +195,7 @@ def generate_incremental_data():
             stock_status = 'Normal'
         
         inventory_value = current_stock * product['unit_cost']
-        carrying_cost = inventory_value * 0.25  # 25% annual carrying cost
+        carrying_cost = inventory_value * carrying_cost_rate
         
         inventory_data.append({
             'product_id': product['product_id'],
@@ -266,29 +288,45 @@ def run_etl_pipeline():
         return False
 
 def save_to_csv(orders_df, inventory_df, suppliers_df, products_df):
-    """Append new data to existing CSV files"""
+    """Append new data to existing CSV files with business constraints"""
     os.makedirs('data', exist_ok=True)
     
-    # Append new orders to existing data
+    # Append new orders with data quality checks
     if os.path.exists('data/orders.csv'):
         existing_orders = pd.read_csv('data/orders.csv', parse_dates=['order_date', 'planned_delivery', 'delivery_date'])
+        
+        # Limit total orders to prevent unlimited growth (keep last 6 months)
+        cutoff_date = datetime.now() - timedelta(days=180)
+        existing_orders = existing_orders[existing_orders['order_date'] >= cutoff_date.strftime('%Y-%m-%d')]
+        
         combined_orders = pd.concat([existing_orders, orders_df], ignore_index=True)
-        combined_orders.drop_duplicates(subset=['order_id'], keep='last').to_csv('data/orders.csv', index=False)
-        print(f"Total orders after append: {len(combined_orders)}")
+        combined_orders = combined_orders.drop_duplicates(subset=['order_id'], keep='last')
+        
+        # Ensure realistic data bounds
+        combined_orders['defect_rate'] = combined_orders['defect_rate'].clip(0, 5)  # Max 5% defect rate
+        combined_orders['lead_time'] = combined_orders['lead_time'].clip(1, 45)  # 1-45 days lead time
+        
+        combined_orders.to_csv('data/orders.csv', index=False)
+        print(f"Total orders after append: {len(combined_orders)} (last 6 months)")
     else:
         orders_df.to_csv('data/orders.csv', index=False)
         print(f"Initial orders file created with {len(orders_df)} orders")
     
-    # Update inventory (replace with latest)
+    # Update inventory with realistic bounds
+    inventory_df['current_stock'] = inventory_df['current_stock'].clip(0, 10000)
+    inventory_df['safety_stock'] = inventory_df['safety_stock'].clip(5, 1000)
     inventory_df.to_csv('data/inventory.csv', index=False)
     
-    # Update suppliers (replace with latest)
+    # Update suppliers with quality bounds
+    suppliers_df['quality_rating'] = suppliers_df['quality_rating'].clip(3.0, 5.0)
+    suppliers_df['lead_time_target'] = suppliers_df['lead_time_target'].clip(1, 30)
     suppliers_df.to_csv('data/suppliers.csv', index=False)
     
-    # Update products (replace with latest)
+    # Update products with cost bounds
+    products_df['unit_cost'] = products_df['unit_cost'].clip(1, 2000)
     products_df.to_csv('data/products.csv', index=False)
     
-    print(f"Data appended: {len(orders_df)} new orders added")
+    print(f"Data appended: {len(orders_df)} new orders added with realistic constraints")
 
 if __name__ == "__main__":
     run_etl_pipeline()
