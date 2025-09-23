@@ -82,7 +82,7 @@ def generate_incremental_data():
         order_date = current_date - timedelta(days=np.random.randint(0, 2))
         
         # Planned delivery based on supplier lead time
-        planned_delivery = order_date + timedelta(days=supplier['lead_time_target'])
+        planned_delivery = order_date + timedelta(days=int(supplier['lead_time_target']))
         
         # Actual delivery (some delays based on supplier performance)
         delay_probability = 0.15 if supplier['quality_rating'] > 4.0 else 0.3
@@ -114,7 +114,7 @@ def generate_incremental_data():
         
         # Quality costs
         quality_cost = defect_rate * total_value * 0.001 if defect_rate > 1 else 0
-        late_penalty = max(0, (lead_time - supplier['lead_time_target']) * total_value * 0.0005)
+        late_penalty = max(0, (lead_time - int(supplier['lead_time_target'])) * total_value * 0.0005)
         
         orders_data.append({
             'order_id': f'ORD_{datetime.now().strftime("%Y%m%d")}_{i:04d}',

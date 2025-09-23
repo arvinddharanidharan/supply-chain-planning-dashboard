@@ -3,6 +3,7 @@ import pandas as pd
 import streamlit as st
 from datetime import datetime
 import os
+from sqlalchemy import create_engine
 
 # Free PostgreSQL connection (Neon.tech - 10GB free)
 def get_db_connection():
@@ -101,27 +102,24 @@ def create_tables():
 
 def load_data_to_db(orders_df, inventory_df, suppliers_df, products_df):
     """Load dataframes to PostgreSQL"""
-    conn = get_db_connection()
-    if not conn:
-        return False
-    
     try:
+        # Create SQLAlchemy engine
+        db_url = f"postgresql://{st.secrets.get('DB_USER', '')}:{st.secrets.get('DB_PASSWORD', '')}@{st.secrets.get('DB_HOST', '')}:{st.secrets.get('DB_PORT', '5432')}/{st.secrets.get('DB_NAME', '')}"
+        engine = create_engine(db_url)
+        
         # Clear existing data (for daily refresh)
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM orders WHERE order_date >= CURRENT_DATE - INTERVAL '30 days'")
-        cursor.execute("DELETE FROM inventory")
-        cursor.execute("DELETE FROM suppliers")
-        cursor.execute("DELETE FROM products")
+        with engine.begin() as conn:
+            conn.execute("DELETE FROM orders WHERE order_date >= CURRENT_DATE - INTERVAL '30 days'")
+            conn.execute("DELETE FROM inventory")
+            conn.execute("DELETE FROM suppliers")
+            conn.execute("DELETE FROM products")
         
         # Load new data
-        orders_df.to_sql('orders', conn, if_exists='append', index=False, method='multi')
-        inventory_df.to_sql('inventory', conn, if_exists='append', index=False, method='multi')
-        suppliers_df.to_sql('suppliers', conn, if_exists='append', index=False, method='multi')
-        products_df.to_sql('products', conn, if_exists='append', index=False, method='multi')
+        orders_df.to_sql('orders', engine, if_exists='append', index=False)
+        inventory_df.to_sql('inventory', engine, if_exists='append', index=False)
+        suppliers_df.to_sql('suppliers', engine, if_exists='append', index=False)
+        products_df.to_sql('products', engine, if_exists='append', index=False)
         
-        conn.commit()
-        cursor.close()
-        conn.close()
         print(f"Data loaded successfully at {datetime.now()}")
         return True
     except Exception as e:
@@ -130,23 +128,21 @@ def load_data_to_db(orders_df, inventory_df, suppliers_df, products_df):
 
 def load_data_from_db():
     """Load data from PostgreSQL for the app"""
-    conn = get_db_connection()
-    if not conn:
-        # Fallback to CSV files
-        return load_csv_fallback()
-    
     try:
-        orders = pd.read_sql("SELECT * FROM orders ORDER BY order_date DESC", conn)
-        inventory = pd.read_sql("SELECT * FROM inventory", conn)
-        suppliers = pd.read_sql("SELECT * FROM suppliers", conn)
-        products = pd.read_sql("SELECT * FROM products", conn)
+        # Create SQLAlchemy engine
+        db_url = f"postgresql://{st.secrets.get('DB_USER', '')}:{st.secrets.get('DB_PASSWORD', '')}@{st.secrets.get('DB_HOST', '')}:{st.secrets.get('DB_PORT', '5432')}/{st.secrets.get('DB_NAME', '')}"
+        engine = create_engine(db_url)
+        
+        orders = pd.read_sql("SELECT * FROM orders ORDER BY order_date DESC", engine)
+        inventory = pd.read_sql("SELECT * FROM inventory", engine)
+        suppliers = pd.read_sql("SELECT * FROM suppliers", engine)
+        products = pd.read_sql("SELECT * FROM products", engine)
         
         # Convert date columns
         orders['order_date'] = pd.to_datetime(orders['order_date'])
         orders['planned_delivery'] = pd.to_datetime(orders['planned_delivery'])
         orders['delivery_date'] = pd.to_datetime(orders['delivery_date'])
         
-        conn.close()
         return orders, inventory, products, suppliers
     except Exception as e:
         print(f"Database load failed: {e}")

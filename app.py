@@ -443,11 +443,20 @@ def create_dashboard_controls(orders, suppliers, products):
     else:
         start_date = orders['order_date'].min().date()
     
+    # Ensure start_date is within valid range
+    min_date = orders['order_date'].min().date()
+    max_date = orders['order_date'].max().date()
+    
+    if start_date < min_date:
+        start_date = min_date
+    if end_date > max_date:
+        end_date = max_date
+        
     date_range = st.date_input(
         "Custom Date Range",
         value=[start_date, end_date],
-        min_value=orders['order_date'].min().date(),
-        max_value=orders['order_date'].max().date()
+        min_value=min_date,
+        max_value=max_date
     )
     
     st.markdown("---")
