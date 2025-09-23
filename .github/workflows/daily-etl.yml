@@ -37,7 +37,8 @@ jobs:
       run: |
         echo "Running automated ETL pipeline..."
         python run_etl.py
-        echo "ETL completed. Data files updated."
+        python data_cleanup.py
+        echo "ETL completed. Data files updated and cleaned."
         
     - name: Show data stats
       run: |
