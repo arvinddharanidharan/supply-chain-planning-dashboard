@@ -12,8 +12,8 @@ def generate_incremental_data():
     # Business-relevant parameters
     current_date = datetime.now().date()
     
-    # Generate new orders (10-50 per day)
-    n_new_orders = np.random.randint(10, 51)
+    # Generate new orders (5-15 per day for realistic growth)
+    n_new_orders = np.random.randint(5, 16)
     
     # Supplier performance trends (some suppliers getting better/worse)
     supplier_trends = {
@@ -119,8 +119,10 @@ def generate_incremental_data():
         quality_cost = defect_rate * total_value * 0.001 if defect_rate > 1 else 0
         late_penalty = max(0, (lead_time - int(supplier['lead_time_target'])) * total_value * 0.0005)
         
+        # Generate unique order ID with timestamp
+        timestamp = int(datetime.now().timestamp())
         orders_data.append({
-            'order_id': f'ORD_{datetime.now().strftime("%Y%m%d")}_{i:04d}',
+            'order_id': f'ORD_{timestamp}_{i:04d}',
             'supplier_id': supplier['supplier_id'],
             'product_id': product['product_id'],
             'category': product['category'],
@@ -263,13 +265,27 @@ def run_etl_pipeline():
         return False
 
 def save_to_csv(orders_df, inventory_df, suppliers_df, products_df):
-    """Save data to CSV files as backup"""
+    """Append new data to existing CSV files"""
     os.makedirs('data', exist_ok=True)
-    orders_df.to_csv('data/orders.csv', index=False)
+    
+    # Append new orders to existing data
+    if os.path.exists('data/orders.csv'):
+        existing_orders = pd.read_csv('data/orders.csv')
+        combined_orders = pd.concat([existing_orders, orders_df], ignore_index=True)
+        combined_orders.drop_duplicates(subset=['order_id'], keep='last').to_csv('data/orders.csv', index=False)
+    else:
+        orders_df.to_csv('data/orders.csv', index=False)
+    
+    # Update inventory (replace with latest)
     inventory_df.to_csv('data/inventory.csv', index=False)
+    
+    # Update suppliers (replace with latest)
     suppliers_df.to_csv('data/suppliers.csv', index=False)
+    
+    # Update products (replace with latest)
     products_df.to_csv('data/products.csv', index=False)
-    print("Data saved to CSV files")
+    
+    print(f"Data appended: {len(orders_df)} new orders added")
 
 if __name__ == "__main__":
     run_etl_pipeline()
