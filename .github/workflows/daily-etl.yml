@@ -37,11 +37,10 @@ jobs:
         python etl_data_generator.py
         
     - name: Commit updated data
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add data/*.csv
-        git diff --staged --quiet || git commit -m "Daily data update $(date)"
-        git push https://${{ secrets.PAT_TOKEN }}@github.com/arvinddharanidharan/supply-chain-planning-dashboard.git
-      env:
-        PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: 'Daily data update $(date)'
+        file_pattern: 'data/*.csv'
+        commit_user_name: 'GitHub Action'
+        commit_user_email: 'action@github.com'
+        commit_author: 'GitHub Action <action@github.com>'
