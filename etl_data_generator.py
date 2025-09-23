@@ -192,31 +192,32 @@ def generate_incremental_data():
     return orders_df, inventory_df, suppliers_df, products_df
 
 def setup_logging():
-    """Setup logging with rotation between current and archive logs"""
+    """Setup logging with last 30 lines in current_log.txt, rest in archived_logs.txt"""
     os.makedirs('logs', exist_ok=True)
     
-    # Archive old logs if current_log.txt is older than 7 days
     current_log_path = 'logs/current_log.txt'
-    archive_log_path = 'logs/archive_log.txt'
+    archive_log_path = 'logs/archived_logs.txt'
     
+    # Read existing current log
     if os.path.exists(current_log_path):
-        file_age = datetime.now() - datetime.fromtimestamp(os.path.getmtime(current_log_path))
-        if file_age.days >= 7:
-            # Move current to archive
-            if os.path.exists(archive_log_path):
-                with open(archive_log_path, 'a') as archive, open(current_log_path, 'r') as current:
-                    archive.write(current.read())
-            else:
-                os.rename(current_log_path, archive_log_path)
-            # Clear current log
-            open(current_log_path, 'w').close()
+        with open(current_log_path, 'r') as f:
+            lines = f.readlines()
+        
+        # If more than 30 lines, archive the excess
+        if len(lines) > 30:
+            with open(archive_log_path, 'a') as archive:
+                archive.writelines(lines[:-30])
+            
+            # Keep only last 30 lines in current log
+            with open(current_log_path, 'w') as current:
+                current.writelines(lines[-30:])
     
     # Setup logger
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
         handlers=[
-            logging.FileHandler(current_log_path),
+            logging.FileHandler(current_log_path, mode='a'),
             logging.StreamHandler()
         ]
     )
