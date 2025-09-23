@@ -21,7 +21,7 @@ jobs:
         
     - name: Install dependencies
       run: |
-        pip install pandas numpy psycopg2-binary sqlalchemy
+        pip install pandas numpy psycopg2-binary sqlalchemy streamlit
         
     - name: Run ETL Pipeline
       env:

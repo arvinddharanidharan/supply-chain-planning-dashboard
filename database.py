@@ -1,9 +1,22 @@
 import psycopg2
 import pandas as pd
-import streamlit as st
 from datetime import datetime
 import os
 from sqlalchemy import create_engine, text
+
+# Handle streamlit import for CI environments
+try:
+    import streamlit as st
+except ImportError:
+    # Mock streamlit.secrets for CI/non-streamlit environments
+    class MockSecrets:
+        def get(self, key, default=None):
+            return os.environ.get(key, default)
+    
+    class MockStreamlit:
+        secrets = MockSecrets()
+    
+    st = MockStreamlit()
 
 # Free PostgreSQL connection (Neon.tech - 10GB free)
 def get_db_connection():
