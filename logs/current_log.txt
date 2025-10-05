@@ -1,8 +1,3 @@
-2025-09-28 06:46:46,354 - INFO - Starting ETL pipeline
-2025-09-28 06:46:46,354 - INFO - Generating incremental data
-2025-09-28 06:46:46,375 - INFO - Generated 8 orders, 100 inventory items
-2025-09-28 06:46:46,375 - INFO - CI environment detected, saving to CSV only
-2025-09-28 06:46:46,411 - INFO - ETL pipeline completed successfully (CSV mode)
 2025-09-29 06:53:33,026 - INFO - Starting ETL pipeline
 2025-09-29 06:53:33,026 - INFO - Generating incremental data
 2025-09-29 06:53:33,048 - INFO - Generated 10 orders, 100 inventory items
@@ -33,3 +28,8 @@
 2025-10-04 06:44:07,503 - INFO - Generated 12 orders, 100 inventory items
 2025-10-04 06:44:07,503 - INFO - CI environment detected, saving to CSV only
 2025-10-04 06:44:07,534 - INFO - ETL pipeline completed successfully (CSV mode)
+2025-10-05 06:43:53,805 - INFO - Starting ETL pipeline
+2025-10-05 06:43:53,805 - INFO - Generating incremental data
+2025-10-05 06:43:53,826 - INFO - Generated 9 orders, 100 inventory items
+2025-10-05 06:43:53,827 - INFO - CI environment detected, saving to CSV only
+2025-10-05 06:43:53,858 - INFO - ETL pipeline completed successfully (CSV mode)
