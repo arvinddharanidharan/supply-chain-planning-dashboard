@@ -1891,3 +1891,8 @@
 2026-09-20 10:43:27,923 - INFO - Generated 13 orders, 100 inventory items
 2026-09-20 10:43:27,923 - INFO - CI environment detected, saving to CSV only
 2026-09-20 10:43:27,990 - INFO - ETL pipeline completed successfully (CSV mode)
+2026-09-21 12:06:49,096 - INFO - Starting ETL pipeline
+2026-09-21 12:06:49,096 - INFO - Generating incremental data
+2026-09-21 12:06:49,121 - INFO - Generated 14 orders, 100 inventory items
+2026-09-21 12:06:49,121 - INFO - CI environment detected, saving to CSV only
+2026-09-21 12:06:49,190 - INFO - ETL pipeline completed successfully (CSV mode)
